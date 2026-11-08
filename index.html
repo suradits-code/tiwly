@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tiwly · ค้นหาติวเตอร์ที่ใช่</title>
+<meta name="description" content="แพลตฟอร์มค้นหาและจองเรียนกับติวเตอร์ทั่วประเทศไทย ทั้งออนไลน์และตัวต่อตัว">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky top bar, centered 1240px column, cards on a soft blue-white ground; dashboards use sidebar + content that stack on phones */
+:root{
+  --bg:#FFFFFF; --bg-soft:#F5F8FF; --page:#F7F9FD; --surface:#FFFFFF; --surface-2:#F1F4FA;
+  --ink:#0E1A3A; --ink-2:#2A3654; --muted:#4F5B76; --line:#E2E7F1; --line-2:#D5DFF7; --dot:#D5DFF7;
+  --primary:#1E4ED8; --primary-hover:#163BA6; --primary-ink:#FFFFFF; --link:#1E4ED8; --tint:#E8EEFE; --tint-ink:#163BA6;
+  --ok-bg:#E6F5EF; --ok:#0B6B53; --warn-bg:#FFF4DB; --warn:#7A4B00; --danger:#B42318; --star:#F2A516; --star-off:#B5BDD0;
+  --navy:#0E1A3A; --navy-2:#15244D; --navy-line:#2A3B6E; --on-navy:#FFFFFF; --on-navy-muted:#B9C6E6;
+  --av-l:90%; --av-t:30%; --shadow:0 24px 48px -28px rgba(14,26,58,.35); --scrim:rgba(14,26,58,.45); --focus:#7FA2FF;
+  --f-display:'Anuphan','IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1220; --bg-soft:#0F1A30; --page:#0B1220; --surface:#111B2E; --surface-2:#18243B;
+  --ink:#E7ECF7; --ink-2:#C9D2E6; --muted:#9AA5BF; --line:#22304D; --line-2:#2E4068; --dot:#1E2C4A;
+  --primary:#5B86F5; --primary-hover:#7C9FF8; --primary-ink:#07112A; --link:#8FB0FF; --tint:#1A2A52; --tint-ink:#B4C8FF;
+  --ok-bg:#0F3328; --ok:#74D9B5; --warn-bg:#3A2B0B; --warn:#F2C467; --danger:#FF8A80; --star:#F5B83A; --star-off:#4A5878;
+  --navy:#101D3D; --navy-2:#172650; --navy-line:#2E4174; --on-navy:#FFFFFF; --on-navy-muted:#B9C6E6;
+  --av-l:26%; --av-t:86%; --shadow:0 24px 48px -28px rgba(0,0,0,.7); --scrim:rgba(0,0,0,.6); --focus:#8FB0FF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --bg-soft:#0F1A30; --page:#0B1220; --surface:#111B2E; --surface-2:#18243B;
+  --ink:#E7ECF7; --ink-2:#C9D2E6; --muted:#9AA5BF; --line:#22304D; --line-2:#2E4068; --dot:#1E2C4A;
+  --primary:#5B86F5; --primary-hover:#7C9FF8; --primary-ink:#07112A; --link:#8FB0FF; --tint:#1A2A52; --tint-ink:#B4C8FF;
+  --ok-bg:#0F3328; --ok:#74D9B5; --warn-bg:#3A2B0B; --warn:#F2C467; --danger:#FF8A80; --star:#F5B83A; --star-off:#4A5878;
+  --navy:#101D3D; --navy-2:#172650; --navy-line:#2E4174; --on-navy:#FFFFFF; --on-navy-muted:#B9C6E6;
+  --av-l:26%; --av-t:86%; --shadow:0 24px 48px -28px rgba(0,0,0,.7); --scrim:rgba(0,0,0,.6); --focus:#8FB0FF; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--surface)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;margin:0;text-wrap:balance}
+p{margin:0}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--primary-hover)}
+button{font:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* demo strip + top bar */
+.demo{background:var(--navy);color:var(--on-navy-muted);font-size:13px}
+.demo .wrap{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding-block:7px;text-align:center}
+.demo button{background:none;border:0;color:var(--on-navy);text-decoration:underline;cursor:pointer;font-size:13px;padding:2px}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-in{display:flex;align-items:center;gap:20px;padding-block:12px}
+.logo{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em}
+.logo:hover{color:var(--ink)}
+.mainnav{flex:1;display:flex;align-items:center;gap:6px 26px;font-weight:500;font-size:15px}
+.mainnav .links{display:flex;gap:6px 24px;flex-wrap:wrap}
+.mainnav .links a,.mainnav .links button{color:var(--ink-2);background:none;border:0;padding:8px 0;cursor:pointer;font-weight:500;font-size:15px}
+.mainnav .links a[aria-current="page"]{color:var(--link)}
+.nav-auth{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-toggle{display:none;margin-left:auto;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;align-items:center;justify-content:center}
+.userchip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border:1px solid var(--line);border-radius:999px;color:var(--ink);font-weight:500}
+.userchip:hover{color:var(--ink);border-color:var(--line-2)}
+@media (max-width:900px){
+  .nav-toggle{display:inline-flex}
+  .mainnav{display:none;position:absolute;left:0;right:0;top:100%;background:var(--surface);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:12px max(16px,env(safe-area-inset-right,0px)) 18px max(16px,env(safe-area-inset-left,0px));box-shadow:var(--shadow)}
+  .mainnav.open{display:flex}
+  .mainnav .links{flex-direction:column;gap:0}
+  .mainnav .links a,.mainnav .links button{padding:12px 0;text-align:left;border-bottom:1px solid var(--line)}
+  .nav-auth{margin-left:0;padding-top:12px}
+}
+
+/* primitives */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;font-weight:600;font-size:15px;border:1px solid transparent;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn-primary{background:var(--primary);color:var(--primary-ink)}
+.btn-primary:hover{background:var(--primary-hover);color:var(--primary-ink)}
+.btn-outline{background:var(--surface);border-color:var(--line-2);color:var(--link)}
+.btn-outline:hover{border-color:var(--link);color:var(--link)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn-sm{min-height:38px;padding:0 12px;font-size:14px;border-radius:10px}
+.btn-block{width:100%}
+.btn-lg{min-height:52px;font-size:17px;border-radius:14px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;flex-shrink:0}
+.icon-btn[aria-pressed="true"]{color:#E5484D;border-color:#F3B0B2}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px}
+.pad{padding:24px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;white-space:nowrap;line-height:1.6}
+.b-ok{background:var(--ok-bg);color:var(--ok)}
+.b-warn{background:var(--warn-bg);color:var(--warn)}
+.b-neutral{background:var(--surface-2);color:var(--ink-2)}
+.b-info{background:var(--tint);color:var(--tint-ink)}
+.tag{display:inline-flex;font-size:13px;padding:3px 10px;border-radius:8px;background:var(--bg-soft);border:1px solid var(--line);color:var(--ink-2)}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-family:var(--f-display);font-weight:700;flex-shrink:0;background:hsl(var(--h) 80% var(--av-l));color:hsl(var(--h) 55% var(--av-t))}
+.eyebrow{font-size:14px;font-weight:600;color:var(--link);letter-spacing:.04em}
+.h2{font-weight:700;font-size:clamp(1.7rem,3vw,2.4rem)}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:28px}
+.sec-head>div{display:flex;flex-direction:column;gap:8px}
+.stars{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--ink)}
+.input{font:inherit;font-weight:400;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.input:focus{outline:2px solid var(--focus);outline-offset:0;border-color:transparent}
+textarea.input{resize:vertical;min-height:88px}
+.check{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:400;cursor:pointer;min-height:32px}
+.check input{accent-color:var(--primary);width:18px;height:18px;margin:0;flex-shrink:0}
+.seg{display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;border-radius:9px;background:transparent;color:var(--ink-2);padding:6px 8px;min-height:38px;font-size:14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(14,26,58,.15)}
+.pill{border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 14px;min-height:40px;font-size:14px;cursor:pointer}
+.pill[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.slot{border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 4px;min-height:44px;font-size:14px;font-weight:500;cursor:pointer}
+.slot[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--primary-ink)}
+.slot[disabled]{color:var(--muted);text-decoration:line-through;cursor:not-allowed;background:var(--surface-2)}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{text-align:left;font-size:13px;color:var(--muted);font-weight:600;padding:10px 12px}
+.tbl td{padding:13px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.grid-auto{display:grid;gap:20px}
+.empty{border:1px dashed var(--line-2);border-radius:16px;padding:24px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:center}
+
+/* home */
+.hero{background:var(--bg-soft);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:22px 22px}
+.hero-in{position:relative;display:flex;flex-wrap:wrap;gap:48px;align-items:center;padding-block:64px 56px}
+.hero h1{font-weight:700;font-size:clamp(2.3rem,5vw,3.9rem);line-height:1.15;letter-spacing:-.02em}
+.hero h1 span{color:var(--link)}
+.searchbar{flex:1 1 100%;background:var(--surface);border:1px solid var(--line-2);border-radius:20px;padding:10px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:6px}
+.searchbar label{flex:1 1 180px;display:flex;flex-direction:column;gap:2px;padding:8px 14px;border-radius:12px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.searchbar label+label{border-left:1px solid var(--line)}
+.searchbar input,.searchbar select{border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);padding:2px 0;min-height:30px;width:100%}
+.searchbar input:focus,.searchbar select:focus{outline:none}
+.searchbar label:focus-within{background:var(--bg-soft)}
+.searchbar .btn{flex:1 1 170px;min-height:56px;font-size:17px;border-radius:14px}
+@media (max-width:700px){.searchbar label+label{border-left:0;border-top:1px solid var(--line);border-radius:0}}
+.hero-visual{flex:1 1 360px;min-width:0;position:relative;min-height:320px}
+.subj{display:flex;gap:16px;align-items:center;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);cursor:pointer;text-align:left;width:100%}
+.subj:hover{border-color:var(--link)}
+.subj .g{display:flex;width:56px;height:56px;border-radius:14px;background:var(--bg-soft);border:1px solid var(--line);align-items:center;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:16px;color:var(--link);flex-shrink:0}
+.band{background:var(--navy);color:var(--on-navy)}
+.band .eyebrow{color:#8FB0FF}
+
+/* tutor card */
+.tcard{display:flex;flex-wrap:wrap;gap:20px;padding:22px}
+.tcard .side{flex:1 1 210px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;border-left:1px solid var(--line);padding-left:20px}
+@media (max-width:640px){.tcard .side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:16px}}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:6px 18px;font-size:14px;color:var(--ink-2)}
+.facts span{display:flex;gap:8px;align-items:center}
+.facts svg{color:var(--muted);flex-shrink:0}
+.fcard{display:flex;flex-direction:column;gap:14px;padding:22px}
+
+/* search layout */
+.search-grid{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.filters{flex:1 1 270px;max-width:100%;padding:6px 20px 14px}
+.filters fieldset{border:0;margin:0;padding:16px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;min-width:0}
+.filters fieldset:last-child{border-bottom:0}
+.filters legend{font-weight:600;font-size:15px;padding:0;margin-bottom:8px}
+.results{flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.filter-toggle{display:none}
+@media (max-width:900px){.filter-toggle{display:inline-flex}.filters.collapsed{display:none}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--tint);color:var(--tint-ink);font-size:14px;font-weight:500;padding:4px 6px 4px 14px;border-radius:999px;border:0;cursor:pointer;min-height:34px}
+
+/* profile */
+.prof-grid{display:flex;flex-wrap:wrap-reverse;gap:24px;align-items:flex-start}
+.prof-main{flex:999 1 600px;min-width:0;display:flex;flex-direction:column;gap:24px}
+.book{flex:1 1 340px;min-width:0;padding:24px;display:flex;flex-direction:column;gap:16px;border-color:var(--line-2);box-shadow:var(--shadow)}
+@media (min-width:1000px){.book{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px)}}
+.avail{display:grid;grid-template-columns:84px repeat(7,minmax(44px,1fr));gap:6px;min-width:520px;font-size:14px}
+.avail .c{height:40px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.avail .c.on{background:var(--primary);border-color:var(--primary)}
+.bar{flex:1;height:8px;border-radius:8px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar span{background:var(--star);border-radius:8px}
+
+/* dashboards */
+.dash{display:flex;flex-wrap:wrap;align-items:stretch;background:var(--page);min-height:70vh}
+.dash-side{flex:1 1 240px;max-width:100%;background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:18px}
+.dash-side.navy{background:var(--navy);border-right:0;color:var(--on-navy)}
+.dash-nav{display:flex;flex-direction:column;gap:2px}
+.dash-nav button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:0;background:transparent;color:var(--ink-2);padding:10px 12px;border-radius:10px;min-height:44px;font-weight:500;font-size:15px;cursor:pointer}
+.dash-nav button:hover{background:var(--surface-2)}
+.dash-nav button[aria-current="true"]{background:var(--tint);color:var(--tint-ink)}
+.navy .dash-nav button{color:var(--on-navy-muted)}
+.navy .dash-nav button:hover{background:var(--navy-2)}
+.navy .dash-nav button[aria-current="true"]{background:var(--primary);color:var(--primary-ink)}
+.dash-main{flex:999 1 640px;min-width:0;padding:28px max(16px,env(safe-area-inset-right,0px)) 72px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:22px}
+@media (min-width:700px){.dash-main{padding-left:36px;padding-right:36px}}
+@media (max-width:900px){.dash-side{border-right:0;border-bottom:1px solid var(--line)}.dash-nav{flex-direction:row;overflow-x:auto}.dash-nav button{white-space:nowrap}.dash-side .hide-sm{display:none}}
+.kpi{padding:20px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--f-display);font-size:30px;line-height:1.25}
+.next{background:var(--navy);color:var(--on-navy);border:0}
+.chart{display:flex;align-items:flex-end;gap:clamp(8px,2vw,24px);height:220px;border-bottom:1px solid var(--line);padding-top:8px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.chart .col i{display:block;width:100%;max-width:56px;border-radius:8px 8px 0 0;background:var(--line-2)}
+.chart .col.now i{background:var(--primary)}
+.chart-x{display:flex;gap:clamp(8px,2vw,24px);font-size:13px;color:var(--muted)}
+.chart-x span{flex:1;text-align:center}
+.avail-edit button{height:40px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer}
+.avail-edit button[aria-pressed="true"]{background:var(--primary);border-color:var(--primary)}
+
+/* overlays */
+.modal-back{position:fixed;inset:0;background:var(--scrim);z-index:100;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal{background:var(--surface);border-radius:22px;width:min(560px,100%);max-height:100%;overflow:auto;padding:26px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+.modal.wide{width:min(900px,100%)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--navy);color:var(--on-navy);padding:12px 18px;border-radius:14px;z-index:120;font-weight:500;box-shadow:var(--shadow);max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center}
+.tray{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--navy);color:var(--on-navy);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tray-in{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.tray .item{display:inline-flex;align-items:center;gap:8px;background:var(--navy-2);border:1px solid var(--navy-line);border-radius:12px;padding:4px 6px 4px 4px;font-size:14px}
+.tray .item button{background:none;border:0;color:var(--on-navy-muted);cursor:pointer;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center}
+.tray .btn-tray{background:#FFFFFF;color:#0E1A3A}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@keyframes rise{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast{animation:rise .2s ease-out}
+</style>
+
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+/* ====== ตั้งค่าการเชื่อมต่อ Supabase ====== */
+const SUPABASE_URL='https://uyoyhnrnoqssckntveaj.supabase.co';
+const SUPABASE_KEY='sb_publishable_Z5R4vpLQPWQDmsGFX-OFlw_9N6D1O_i';
+const sb=(window.supabase&&SUPABASE_KEY)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+
+/* ---------- constants ---------- */
+const SUBJECTS=['คณิตศาสตร์','ภาษาอังกฤษ','วิทยาศาสตร์','ฟิสิกส์','เคมี','ชีววิทยา','เศรษฐศาสตร์','ภาษาไทย','สังคมศึกษา','ภาษาจีน','ภาษาญี่ปุ่น','คอมพิวเตอร์'];
+const GLYPH={'คณิตศาสตร์':'∑','ภาษาอังกฤษ':'Aa','วิทยาศาสตร์':'วิทย์','ฟิสิกส์':'F=ma','เคมี':'H₂O','ชีววิทยา':'DNA','เศรษฐศาสตร์':'฿','ภาษาไทย':'กข','สังคมศึกษา':'สังคม','ภาษาจีน':'中文','ภาษาญี่ปุ่น':'あ','คอมพิวเตอร์':'</>'};
+const LEVELS=['ประถม','มัธยมต้น','มัธยมปลาย','มหาวิทยาลัย','วัยทำงาน'];
+const PROVINCES=['กรุงเทพมหานคร','นนทบุรี','ปทุมธานี','สมุทรปราการ','นครปฐม','ชลบุรี','ระยอง','เชียงใหม่','เชียงราย','พิษณุโลก','ขอนแก่น','นครราชสีมา','อุดรธานี','อุบลราชธานี','ภูเก็ต','สงขลา','สุราษฎร์ธานี','นครศรีธรรมราช','อื่น ๆ'];
+const PERIODS=[{label:'เช้า',time:'09–12 น.',slots:['09:00','10:30']},{label:'บ่าย',time:'13–17 น.',slots:['13:00','14:30','16:00']},{label:'เย็น',time:'17–21 น.',slots:['17:30','19:00']}];
+const DOW=['จ.','อ.','พ.','พฤ.','ศ.','ส.','อา.'];
+const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const LKEY='tiwly-local-v1', DRAFT='tiwly-tutor-draft';
+
+/* ---------- icons ---------- */
+const I={
+search:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+star:(s=18,on=true)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${on?'var(--star)':'none'}" stroke="${on?'var(--star)':'var(--star-off)'}" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>`,
+check:(s=14,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>`,
+shield:(s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>`,
+heart:(s=20,on=false)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>`,
+cap:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg>',
+clock:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+screen:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+pin:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+chat:(s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
+cal:(s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>`,
+x:(s=14)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+arrow:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+back:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>',
+menu:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+filter:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+logo:(s=34)=>`<svg width="${s}" height="${s}" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="#1E4ED8"/><path d="M10 12h14M17 12v12" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/><circle cx="24.5" cy="22.5" r="2.5" fill="#8FB0FF"/></svg>`
+};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const baht=n=>'฿'+Math.round(Number(n)||0).toLocaleString('en-US');
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)};
+const addDays=n=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);return d};
+const parseISO=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(y,m-1,d,12)};
+const dowIdx=d=>(d.getDay()+6)%7;
+const fmtDate=s=>{const d=parseISO(s);return `${DOW[dowIdx(d)]} ${d.getDate()} ${MONTHS[d.getMonth()]}`};
+const fmtDT=s=>{const d=new Date(s);return `${d.getDate()} ${MONTHS[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+const todayISO=()=>iso(new Date());
+const endTime=(t,h)=>{const [hh,mm]=t.split(':').map(Number);const m=hh*60+mm+Math.round(Number(h)*60);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const modeLabel=m=>m==='online'?'ออนไลน์':'ตัวต่อตัว';
+const modesText=ms=>(ms||[]).length===2?'ออนไลน์ / ตัวต่อตัว':((ms||[])[0]==='online'?'ออนไลน์':'ตัวต่อตัว (On-site)');
+const initial=n=>esc(String(n||'?').trim().charAt(0)||'?');
+const av=(t,size=56,fs=22,radius)=>`<span class="av" aria-hidden="true" style="--h:${Number(t&&t.hue)||224};width:${size}px;height:${size}px;font-size:${fs}px;${radius?`border-radius:${radius}px;`:''}">${initial(t&&t.name)}</span>`;
+const rating=t=>Number(t.rating_avg)||0;
+const nick=t=>t.nick||t.name;
+function errMsg(e){const m=(e&&(e.message||e.error_description))||String(e||'');
+ if(/Invalid login/i.test(m))return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+ if(/Email not confirmed/i.test(m))return 'กรุณากดลิงก์ยืนยันในอีเมลก่อนเข้าสู่ระบบ';
+ if(/already registered|already been registered/i.test(m))return 'อีเมลนี้สมัครไว้แล้ว กรุณาเข้าสู่ระบบ';
+ if(/bookings_slot_unique|duplicate key/i.test(m))return 'เวลานี้เพิ่งมีคนจองไป กรุณาเลือกเวลาอื่น';
+ if(/rate limit|security purposes/i.test(m))return 'ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่';
+ if(/Password should be|at least 6/i.test(m))return 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
+ if(/valid email|invalid format/i.test(m))return 'รูปแบบอีเมลไม่ถูกต้อง';
+ if(/Failed to fetch|NetworkError/i.test(m))return 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต';
+ if(/relation .* does not exist|schema cache/i.test(m))return 'ฐานข้อมูลยังไม่ได้ตั้งค่า (ยังไม่ได้รันไฟล์ supabase-setup.sql)';
+ return m||'เกิดข้อผิดพลาด กรุณาลองใหม่'}
+
+/* ---------- local (per-browser) conveniences ---------- */
+let L={saved:[],compare:[]};
+try{const r=JSON.parse(localStorage.getItem(LKEY)||'null');if(r&&Array.isArray(r.saved))L=Object.assign(L,r)}catch(e){}
+function saveL(){try{localStorage.setItem(LKEY,JSON.stringify(L))}catch(e){}}
+
+/* ---------- app state ---------- */
+let session=null, me=null, isAdmin=false, myTutor=null;
+let TUT=[], tutLoaded=false, tutErr='';
+const cache={}, loading={};
+const F={q:'',subjects:[],level:'',min:'',max:'',province:'',mode:'all',exp:0,rating:0,verified:false,sort:'rec'};
+let B=null, studentSection='overview', studentTab='all', tutorTab='overview', cancelArm=null, rateDraft={}, scrollToBook=false, pendingAfterAuth=null;
+let joinAvail=[[0,0,0,0,0,1,1],[0,0,0,0,0,1,1],[1,1,1,1,1,0,0]];
+const uid=()=>session&&session.user&&session.user.id;
+const tutor=id=>TUT.find(t=>t.id===id);
+
+/* ---------- data ---------- */
+async function loadTutors(){
+ const {data,error}=await sb.from('tutors').select('*').order('created_at',{ascending:false});
+ if(error){tutErr=errMsg(error);TUT=[]}else{tutErr='';TUT=data||[]}
+ tutLoaded=true;
+}
+async function loadMe(){
+ me=null;isAdmin=false;myTutor=null;
+ if(!uid())return;
+ const [p,a,t]=await Promise.all([
+  sb.from('profiles').select('*').eq('id',uid()).maybeSingle(),
+  sb.from('admins').select('user_id').eq('user_id',uid()).maybeSingle(),
+  sb.from('tutors').select('*').eq('id',uid()).maybeSingle()]);
+ me=p.data||{id:uid(),role:(session.user.user_metadata||{}).role||'parent',display_name:(session.user.user_metadata||{}).display_name||session.user.email};
+ isAdmin=!!(a.data);myTutor=t.data||null;
+ /* ส่งฟอร์มติวเตอร์ที่ค้างไว้ (กรณีต้องยืนยันอีเมลก่อน) */
+ if(!myTutor){let d=null;try{d=JSON.parse(localStorage.getItem(DRAFT)||'null')}catch(e){}
+  if(d&&d.email&&session.user.email&&d.email.toLowerCase()===session.user.email.toLowerCase()){
+   const {data,error}=await sb.from('tutors').insert(tutorRow(d.row)).select().single();
+   if(!error){myTutor=data;try{localStorage.removeItem(DRAFT)}catch(e){}toast('สร้างโปรไฟล์ติวเตอร์จากข้อมูลที่กรอกไว้แล้ว');await loadTutors()}
+  }}
+}
+const myName=()=>(me&&me.display_name)||(session&&session.user.email)||'';
+function invalidate(...keys){keys.forEach(k=>{Object.keys(cache).forEach(c=>{if(c===k||c.startsWith(k+':'))delete cache[c]})})}
+function need(key,fn){
+ if(key in cache)return cache[key];
+ if(!loading[key]){loading[key]=true;fn().then(v=>{cache[key]=v}).catch(e=>{cache[key]={error:errMsg(e)}}).finally(()=>{loading[key]=false;rerenderKeep()})}
+ return null;
+}
+async function q(p){const {data,error}=await p;if(error)throw error;return data}
+
+/* ---------- routing ---------- */
+function route(){const h=(location.hash||'').replace(/^#/,'');if(!h||/access_token|error_description|type=/.test(h))return 'home';return h}
+function go(h){if(location.hash==='#'+h)render();else location.hash=h}
+window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0)});
+
+/* ---------- toast & modal ---------- */
+let toastT;
+function toast(msg,bad){let el=$('#toast');if(el)el.remove();el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');el.innerHTML=(bad?'':I.check(16,'#74D9B5'))+'<span>'+esc(msg)+'</span>';if(bad)el.style.background='var(--danger)';document.body.appendChild(el);clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),bad?6000:3600)}
+let lastFocus=null;
+function openModal(html,wide){closeModal(true);lastFocus=document.activeElement;const b=document.createElement('div');b.className='modal-back';b.id='modal';b.innerHTML=`<div class="modal${wide?' wide':''}" role="dialog" aria-modal="true" aria-labelledby="mtitle">${html}</div>`;document.body.appendChild(b);b.addEventListener('mousedown',e=>{if(e.target===b)closeModal()});b.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});const f=b.querySelector('input,select,textarea');(f||b.querySelector('button')).focus()}
+function closeModal(silent){const m=$('#modal');if(m){m.remove();if(!silent&&lastFocus&&lastFocus.focus)lastFocus.focus()}}
+const mhead=t=>`<div class="modal-head"><h2 id="mtitle" style="font-size:22px">${t}</h2><button class="icon-btn" data-act="closeModal" aria-label="ปิด">${I.x(16)}</button></div>`;
+function busy(btn,on,label){if(!btn)return;if(on){btn.dataset.label=btn.innerHTML;btn.disabled=true;btn.textContent=label||'กำลังดำเนินการ…'}else{btn.disabled=false;if(btn.dataset.label)btn.innerHTML=btn.dataset.label}}
+
+function openAuth(mode,after,role){
+ pendingAfterAuth=after||null;
+ const isSignup=mode==='signup', isForgot=mode==='forgot';
+ openModal(`${mhead(isForgot?'ลืมรหัสผ่าน':isSignup?'สมัครสมาชิก':'เข้าสู่ระบบ')}
+${isForgot?'':`<div class="seg" role="group" aria-label="เลือกโหมด"><button type="button" data-act="authMode" data-m="login" aria-pressed="${!isSignup}">เข้าสู่ระบบ</button><button type="button" data-act="authMode" data-m="signup" aria-pressed="${isSignup}">สมัครสมาชิก</button></div>`}
+<form data-form="auth" data-mode="${mode}" style="display:flex;flex-direction:column;gap:14px" novalidate>
+${isSignup?`<fieldset style="border:0;padding:0;margin:0"><legend class="field" style="margin-bottom:8px">สมัครในฐานะ</legend>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:8px">
+<label class="check card" style="padding:12px 14px;border-radius:12px"><input type="radio" name="role" value="parent" ${role!=='tutor'?'checked':''}>ผู้ปกครอง / นักเรียน</label>
+<label class="check card" style="padding:12px 14px;border-radius:12px"><input type="radio" name="role" value="tutor" ${role==='tutor'?'checked':''}>ติวเตอร์</label></div></fieldset>
+<label class="field" for="au-name">ชื่อที่ใช้แสดง<input class="input" id="au-name" name="name" autocomplete="name" placeholder="เช่น คุณปรียา"></label>`:''}
+<label class="field" for="au-email">อีเมล<input class="input" id="au-email" name="email" type="email" autocomplete="email" placeholder="name@example.com"></label>
+${isForgot?'':`<label class="field" for="au-pass">รหัสผ่าน${isSignup?' (อย่างน้อย 6 ตัวอักษร)':''}<input class="input" id="au-pass" name="pass" type="password" autocomplete="${isSignup?'new-password':'current-password'}"></label>`}
+<p id="au-err" style="font-size:14px;color:var(--danger)" hidden></p>
+<p id="au-ok" style="font-size:14px;color:var(--ok)" hidden></p>
+<button class="btn btn-primary btn-lg" type="submit">${isForgot?'ส่งลิงก์ตั้งรหัสผ่านใหม่':isSignup?'สร้างบัญชี':'เข้าสู่ระบบ'}</button>
+${mode==='login'?`<button type="button" class="btn btn-ghost btn-sm" data-act="authMode" data-m="forgot" style="align-self:center;color:var(--link)">ลืมรหัสผ่าน?</button>`:''}
+${isForgot?`<button type="button" class="btn btn-ghost btn-sm" data-act="authMode" data-m="login" style="align-self:center;color:var(--link)">กลับไปเข้าสู่ระบบ</button>`:''}
+${isSignup?`<p class="muted" style="font-size:13px;text-align:center">การสมัครถือว่ายอมรับ <a href="#privacy" data-act="closeModal">นโยบายความเป็นส่วนตัว</a></p>`:''}
+</form>`);
+}
+
+/* ---------- layout ---------- */
+function header(){
+ const r=route(), u=uid();
+ const cur=x=>r===x?'aria-current="page"':'';
+ const dash=me&&me.role==='tutor'?'tutor-dashboard':'student';
+ return `<header class="topbar"><div class="wrap topbar-in" style="position:relative">
+<a href="#home" class="logo">${I.logo(34)}<span>Tiwly</span></a>
+<button class="nav-toggle" data-act="navToggle" aria-expanded="false" aria-controls="mainnav" aria-label="เปิดเมนู">${I.menu}</button>
+<nav id="mainnav" class="mainnav" aria-label="เมนูหลัก">
+<div class="links">
+<a href="#search" ${cur('search')}>ค้นหาติวเตอร์</a>
+<button type="button" data-act="scrollHome" data-target="subjects">ค้นหาตามวิชา</button>
+<button type="button" data-act="scrollHome" data-target="how">วิธีการใช้งาน</button>
+<a href="#join" ${cur('join')}>สมัครเป็นติวเตอร์</a>
+${isAdmin?`<a href="#admin" ${cur('admin')}>แอดมิน</a>`:''}
+</div>
+<div class="nav-auth">${u?`<a class="userchip" href="#${dash}"><span class="av" style="--h:224;width:32px;height:32px;font-size:14px">${initial(myName())}</span>${me&&me.role==='tutor'?'แดชบอร์ดติวเตอร์':'แดชบอร์ดของฉัน'}</a><button class="btn btn-ghost btn-sm" data-act="logout">ออกจากระบบ</button>`:`<button class="btn btn-ghost" data-act="auth" data-m="login">เข้าสู่ระบบ</button><button class="btn btn-primary" data-act="auth" data-m="signup">สมัครสมาชิก</button>`}</div>
+</nav></div></header>`;
+}
+function footer(){return `<footer><div class="wrap" style="padding-block:44px 28px;display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between">
+<div style="flex:1 1 260px;max-width:340px;display:flex;flex-direction:column;gap:10px"><span class="logo" style="font-size:20px">${I.logo(28)}Tiwly</span><span class="muted" style="font-size:14px">แพลตฟอร์มกลางสำหรับหาติวเตอร์ที่ใช่ ง่าย ปลอดภัย และสะดวก</span></div>
+<nav aria-label="ลิงก์ท้ายหน้า" style="display:flex;flex-wrap:wrap;gap:48px;font-size:14px">
+<div style="display:flex;flex-direction:column;gap:8px"><b style="font-weight:600">ผู้เรียน</b><a href="#search">ค้นหาติวเตอร์</a><a href="#student">แดชบอร์ดของฉัน</a></div>
+<div style="display:flex;flex-direction:column;gap:8px"><b style="font-weight:600">ติวเตอร์</b><a href="#join">สมัครเป็นติวเตอร์</a><a href="#tutor-dashboard">แดชบอร์ดติวเตอร์</a></div>
+<div style="display:flex;flex-direction:column;gap:8px"><b style="font-weight:600">Tiwly</b><a href="#privacy">นโยบายความเป็นส่วนตัว</a><span class="muted">[อีเมลติดต่อ]</span></div>
+</nav></div><div class="wrap" style="padding-block:16px 28px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">© ${new Date().getFullYear()} Tiwly</div></footer>`}
+function tray(){
+ const el=$('#tray');
+ const list=L.compare.map(tutor).filter(Boolean);
+ if(!list.length){if(el)el.remove();document.body.style.paddingBottom='';return}
+ const html=`<div class="tray-in"><b style="font-weight:600">เปรียบเทียบ ${list.length}/3</b><div style="display:flex;flex-wrap:wrap;gap:8px;flex:1 1 300px">${list.map(t=>`<span class="item">${av(t,28,13,8)}${esc(nick(t))}<button data-act="compare" data-id="${t.id}" aria-label="นำ ${esc(t.name)} ออกจากการเปรียบเทียบ">${I.x(13)}</button></span>`).join('')}</div><button class="btn btn-sm btn-tray" data-act="openCompare" ${list.length<2?'disabled':''}>${list.length<2?'เลือกอย่างน้อย 2 คน':'เปรียบเทียบเลย'}</button></div>`;
+ if(el)el.innerHTML=html;else{const d=document.createElement('div');d.id='tray';d.className='tray';d.setAttribute('role','region');d.setAttribute('aria-label','เปรียบเทียบติวเตอร์');d.innerHTML=html;document.body.appendChild(d)}
+ document.body.style.paddingBottom='84px';
+}
+const loadingBox=(t='กำลังโหลด…')=>`<div class="empty" style="border-style:solid">${esc(t)}</div>`;
+const errBox=m=>`<div class="empty" style="border-color:var(--danger);color:var(--danger)">${esc(m)}</div>`;
+
+/* ---------- shared pieces ---------- */
+function verifiedBadge(t,big){return t.verified?`<span class="badge b-ok" ${big?'style="font-size:13px;padding:4px 12px"':''}>${I.check(12)}Verified Tutor</span>`:`<span class="badge b-warn">ยังไม่ยืนยันเอกสาร</span>`}
+function ratingTxt(t){return t.rating_count?`<span class="stars">${I.star(18)}<span class="num">${rating(t).toFixed(1)}</span> <span class="muted" style="font-weight:400;font-size:14px">(${t.rating_count} รีวิว)</span></span>`:`<span class="badge b-info">ติวเตอร์ใหม่</span>`}
+function featuredCard(t){return `<article class="card fcard">
+<div style="display:flex;gap:14px;align-items:center">${av(t,56,22)}<div style="display:flex;flex-direction:column;min-width:0;line-height:1.4"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-family:var(--f-display);font-weight:600;font-size:18px">${esc(t.name)}</span>${t.verified?'<span class="badge b-ok">Verified</span>':''}</div><span class="muted" style="font-size:14px">${esc((t.subjects||[]).join(' · '))}</span></div></div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--ink-2)"><span>${esc(t.faculty)} ${esc(t.uni)}</span><span>ประสบการณ์สอน ${t.exp} ปี · ${modesText(t.modes)}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:14px">${ratingTxt(t)}<span style="font-family:var(--f-display);font-weight:700;font-size:20px" class="num">${baht(t.price)}<span class="muted" style="font-size:14px;font-weight:500">/ชม.</span></span></div>
+<a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์</a></article>`}
+
+/* ---------- HOME ---------- */
+function viewHome(){
+ const top=[...TUT].sort((a,b)=>(b.verified-a.verified)||(rating(b)*Math.log(b.rating_count+2)-rating(a)*Math.log(a.rating_count+2))).slice(0,3);
+ return `<section class="hero"><div class="wrap hero-in">
+<div style="flex:999 1 540px;min-width:0;display:flex;flex-direction:column;gap:22px">
+<span class="badge b-info" style="align-self:flex-start;font-size:14px;padding:6px 14px;background:var(--surface);border:1px solid var(--line-2)">${I.shield(16)} ตรวจสอบตัวตนติวเตอร์ก่อนให้เครื่องหมาย Verified</span>
+<h1>ค้นหาติวเตอร์ที่ใช่<br><span>เพื่ออนาคตที่ดีกว่า</span></h1>
+<p style="font-size:19px;color:var(--muted);max-width:560px">เปรียบเทียบราคา ประสบการณ์ และรีวิวจากผู้เรียนจริง แล้วจองเรียนกับติวเตอร์ได้ในแพลตฟอร์มเดียว ทั้งออนไลน์และตัวต่อตัวทั่วประเทศ</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-primary btn-lg" href="#search">${I.search} ค้นหาติวเตอร์</a><a class="btn btn-outline btn-lg" href="#join">สมัครเป็นติวเตอร์</a></div>
+</div>
+<form class="searchbar" data-form="homeSearch" role="search" aria-label="ค้นหาติวเตอร์">
+<label for="hs-q">วิชา<input id="hs-q" name="q" list="subj-list" placeholder="เช่น คณิตศาสตร์, ภาษาอังกฤษ, เคมี" autocomplete="off"></label>
+<datalist id="subj-list">${SUBJECTS.map(s=>`<option value="${s}"></option>`).join('')}</datalist>
+<label for="hs-level">ระดับชั้น<select id="hs-level" name="level"><option value="">ทุกระดับชั้น</option>${LEVELS.map(l=>`<option>${l}</option>`).join('')}</select></label>
+<label for="hs-prov">จังหวัด<select id="hs-prov" name="province"><option value="">ทุกจังหวัด</option>${PROVINCES.map(p=>`<option>${p}</option>`).join('')}</select></label>
+<label for="hs-mode">รูปแบบการเรียน<select id="hs-mode" name="mode"><option value="all">ทั้งหมด</option><option value="online">ออนไลน์</option><option value="onsite">ตัวต่อตัว (On-site)</option></select></label>
+<button class="btn btn-primary" type="submit">${I.search} ค้นหาติวเตอร์</button>
+</form>
+</div></section>
+
+<section style="border-bottom:1px solid var(--line)"><div class="wrap grid-auto" style="padding-block:26px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))">
+${[[I.shield(22),'ยืนยันตัวตนและวุฒิการศึกษา','ตรวจบัตรประชาชนและเอกสารก่อนให้เครื่องหมาย Verified'],[I.star(22,false).replace(/var\(--star-off\)/,'currentColor'),'รีวิวจากผู้เรียนจริงเท่านั้น','รีวิวได้เฉพาะผู้ที่จองและเรียนจบผ่านแพลตฟอร์ม'],[I.chat(22),'คุยและจองในที่เดียว','สอบถาม นัดเวลา และดูประวัติการจองได้ทันที']].map(([ic,t,d])=>`<div style="display:flex;gap:14px;align-items:center"><span style="display:flex;width:44px;height:44px;border-radius:12px;background:var(--tint);color:var(--link);align-items:center;justify-content:center;flex-shrink:0">${ic}</span><div style="line-height:1.4"><div style="font-weight:600">${t}</div><div class="muted" style="font-size:14px">${d}</div></div></div>`).join('')}
+</div></section>
+
+<section id="subjects" class="wrap" style="padding-block:80px 32px">
+<div class="sec-head"><div><span class="eyebrow">ค้นหาตามวิชา</span><h2 class="h2">เลือกวิชาที่อยากเก่งขึ้น</h2></div><a href="#search" style="font-weight:600;display:flex;gap:6px;align-items:center">ดูติวเตอร์ทุกวิชา ${I.arrow}</a></div>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:14px">
+${SUBJECTS.map(s=>{const n=TUT.filter(t=>(t.subjects||[]).includes(s)).length;return `<button class="subj" data-act="subject" data-s="${s}"><span class="g" aria-hidden="true">${GLYPH[s]}</span><span style="display:flex;flex-direction:column;line-height:1.4"><span style="font-weight:600;font-size:17px">${s}</span><span class="muted" style="font-size:14px">${tutLoaded?n+' ติวเตอร์':'…'}</span></span></button>`}).join('')}
+</div></section>
+
+<section class="wrap" style="padding-block:40px 80px">
+<div class="sec-head"><div><span class="eyebrow">ติวเตอร์บน Tiwly</span><h2 class="h2">ติวเตอร์แนะนำ</h2></div><a href="#search" style="font-weight:600;display:flex;gap:6px;align-items:center">ดูติวเตอร์ทั้งหมด ${I.arrow}</a></div>
+${!tutLoaded?loadingBox():tutErr?errBox(tutErr):top.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))">${top.map(featuredCard).join('')}</div>`:`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่มีติวเตอร์ในระบบ</b><span>เปิดรับสมัครติวเตอร์แล้ว สมัครเป็นคนแรกได้เลย</span><a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a></div>`}
+</section>
+
+<section id="how" style="background:var(--bg-soft);border-block:1px solid var(--line)"><div class="wrap" style="padding-block:80px">
+<div class="sec-head"><div><span class="eyebrow">วิธีการใช้งาน</span><h2 class="h2">เริ่มเรียนได้ใน 3 ขั้นตอน</h2></div></div>
+<ol class="grid-auto" style="list-style:none;margin:0;padding:0;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))">
+${[['ค้นหาและเปรียบเทียบ','กรองตามวิชา ระดับชั้น งบประมาณ และพื้นที่ แล้วเปรียบเทียบติวเตอร์ได้สูงสุด 3 คนแบบเคียงข้างกัน'],['สอบถามและจองเรียน','ส่งข้อความถามติวเตอร์ เลือกวันเวลาจากตารางว่าง แล้วส่งคำขอจอง ติวเตอร์จะยืนยันกลับ'],['เรียนแล้วรีวิว','ติดตามการเรียนในแดชบอร์ด และให้คะแนนหลังเรียน เพื่อช่วยผู้ปกครองคนอื่นเลือกได้ง่ายขึ้น']].map(([t,d],i)=>`<li class="card" style="padding:28px;display:flex;flex-direction:column;gap:10px"><span style="font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1;color:var(--link)">0${i+1}</span><h3 style="font-size:21px;font-weight:600">${t}</h3><p class="muted">${d}</p></li>`).join('')}
+</ol></div></section>
+
+<section class="band"><div class="wrap" style="padding-block:88px;display:flex;flex-wrap:wrap;gap:48px;align-items:center">
+<div style="flex:1 1 400px;min-width:0;display:flex;flex-direction:column;gap:18px"><span class="eyebrow">ความปลอดภัยและความน่าเชื่อถือ</span><h2 class="h2">ตรวจสอบเอกสารก่อนให้เครื่องหมาย Verified</h2><p style="font-size:18px;color:var(--on-navy-muted);max-width:520px">ติวเตอร์ที่มีเครื่องหมาย Verified ผ่านการตรวจบัตรประชาชนและวุฒิการศึกษาโดยทีมงานแล้ว และรีวิวทุกรายการมาจากการจองจริง</p></div>
+<div style="flex:1 1 440px;min-width:0;background:var(--navy-2);border:1px solid var(--navy-line);border-radius:24px;padding:26px">
+${[['ยืนยันบัตรประชาชน','ติวเตอร์อัปโหลดเอกสาร ทีมงานตรวจสอบตัวตน'],['ตรวจสอบประวัติการศึกษา','ยืนยันมหาวิทยาลัย คณะ และสถานะการศึกษา'],['ใบรับรองและเอกสารเพิ่มเติม','ผลสอบ ใบประกาศ หรือใบอนุญาตประกอบวิชาชีพครู'],['รีวิวจากผู้เรียนจริง','รีวิวได้เฉพาะการจองที่เรียนจบผ่านแพลตฟอร์ม'],['เครื่องหมาย Verified Tutor','แสดงบนโปรไฟล์เมื่อผ่านการตรวจสอบครบ']].map(([t,d])=>`<div style="display:flex;gap:14px;padding:11px 0"><span style="display:flex;width:28px;height:28px;border-radius:999px;background:#1E4ED8;color:#fff;align-items:center;justify-content:center;flex-shrink:0">${I.check(14,'#fff')}</span><div style="display:flex;flex-direction:column;line-height:1.45"><b style="font-weight:600">${t}</b><span style="font-size:14px;color:var(--on-navy-muted)">${d}</span></div></div>`).join('')}
+</div></div></section>
+
+<section class="wrap" style="padding-block:88px"><div style="border:1px solid var(--line-2);background:var(--bg-soft);border-radius:28px;padding:clamp(24px,5vw,56px);display:flex;flex-wrap:wrap;gap:36px;align-items:center">
+<div style="flex:1 1 400px;min-width:0;display:flex;flex-direction:column;gap:14px"><span class="eyebrow">สำหรับติวเตอร์</span><h2 class="h2">สอนในวิชาที่ถนัด กำหนดราคาและเวลาเองได้</h2><p class="muted" style="font-size:17px">สร้างโปรไฟล์ฟรี รับคำขอจองจากผู้ปกครองทั่วประเทศ และจัดการตารางสอนในแดชบอร์ดเดียว</p><div><a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a></div></div>
+<ol style="flex:1 1 360px;min-width:0;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">${[['สร้างโปรไฟล์','วิชา ราคา พื้นที่ และตารางเวลาว่าง'],['ยืนยันตัวตน','บัตรประชาชน วุฒิการศึกษา และใบรับรอง'],['รับคำขอจอง','ตอบรับ นัดเวลา และเริ่มสอน']].map(([t,d],i)=>`<li class="card" style="border-radius:16px;padding:16px 20px;display:flex;gap:16px;align-items:center"><b style="font-family:var(--f-display);color:var(--link);font-size:18px;width:20px">${i+1}</b><span><b style="font-weight:600">${t}</b> <span class="muted">· ${d}</span></span></li>`).join('')}</ol>
+</div></section>`;
+}
+
+/* ---------- SEARCH ---------- */
+function filtered(){
+ const qq=F.q.trim().toLowerCase();
+ return TUT.filter(t=>{
+  if(F.verified&&!t.verified)return false;
+  if(qq&&!((t.name||'').toLowerCase().includes(qq)||(t.nick||'').toLowerCase().includes(qq)||(t.subjects||[]).some(s=>s.includes(F.q.trim()))||(t.headline||'').toLowerCase().includes(qq)))return false;
+  if(F.subjects.length&&!F.subjects.some(s=>(t.subjects||[]).includes(s)))return false;
+  if(F.level&&!(t.levels||[]).includes(F.level))return false;
+  if(F.min!==''&&t.price<Number(F.min))return false;
+  if(F.max!==''&&t.price>Number(F.max))return false;
+  if(F.province&&t.province!==F.province&&!((t.modes||[]).includes('online')&&F.mode!=='onsite'))return false;
+  if(F.mode!=='all'&&!(t.modes||[]).includes(F.mode))return false;
+  if(t.exp<F.exp)return false;
+  if(F.rating&&rating(t)<F.rating)return false;
+  return true}).sort({rec:(a,b)=>(b.verified-a.verified)||(rating(b)*Math.log(b.rating_count+2)-rating(a)*Math.log(a.rating_count+2)),rating:(a,b)=>rating(b)-rating(a)||b.rating_count-a.rating_count,priceAsc:(a,b)=>a.price-b.price,priceDesc:(a,b)=>b.price-a.price,exp:(a,b)=>b.exp-a.exp,new:(a,b)=>String(b.created_at).localeCompare(String(a.created_at))}[F.sort]);
+}
+function searchTitle(){const p=[F.subjects.length===1?'ติวเตอร์'+F.subjects[0]:'ติวเตอร์ทั้งหมด'];if(F.level)p.push('ระดับ'+F.level);if(F.province)p.push('· '+F.province);return p.join(' ')}
+function activeChips(){
+ const c=[];
+ if(F.q)c.push(['q','',`“${F.q}”`]);
+ F.subjects.forEach(s=>c.push(['subject',s,s]));
+ if(F.level)c.push(['level','',F.level]);
+ if(F.min!==''||F.max!=='')c.push(['price','',`${F.min!==''?baht(F.min):'฿0'}–${F.max!==''?baht(F.max):'ไม่จำกัด'}/ชม.`]);
+ if(F.province)c.push(['province','',F.province]);
+ if(F.mode!=='all')c.push(['mode','',modeLabel(F.mode)]);
+ if(F.exp)c.push(['exp','',`ประสบการณ์ ${F.exp}+ ปี`]);
+ if(F.rating)c.push(['rating','',`${F.rating}+ ดาว`]);
+ if(F.verified)c.push(['verified','','เฉพาะ Verified']);
+ return c.length?c.map(([k,v,l])=>`<button class="chip" data-act="rmFilter" data-k="${k}" data-v="${esc(v)}" aria-label="ลบตัวกรอง ${esc(l)}">${esc(l)} ${I.x(13)}</button>`).join('')+`<button class="btn btn-ghost btn-sm" data-act="clearFilters" style="color:var(--link)">ล้างทั้งหมด</button>`:'';
+}
+function resultCard(t){
+ const saved=L.saved.includes(t.id),cmp=L.compare.includes(t.id);
+ return `<article class="card tcard">${av(t,96,38,20)}
+<div style="flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><h2 style="font-size:20px;font-weight:600"><a href="#t-${t.id}" style="color:var(--ink)">${esc(t.name)}</a></h2>${verifiedBadge(t)}</div>
+${t.headline?`<p style="font-size:15px;color:var(--ink-2)">${esc(t.headline)}</p>`:''}
+<div style="display:flex;flex-wrap:wrap;gap:6px">${(t.subjects||[]).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}${(t.levels||[]).map(l=>`<span class="tag" style="background:transparent">${esc(l)}</span>`).join('')}</div>
+<div class="facts"><span>${I.cap}${esc(t.faculty)} ${esc(t.uni)}</span><span>${I.clock}ประสบการณ์สอน ${t.exp} ปี</span><span>${I.screen}${modesText(t.modes)}</span><span>${I.pin}${esc(t.province)}${(t.modes||[]).includes('onsite')&&t.areas?' · '+esc(t.areas):''}</span></div>
+<label class="check" style="font-size:14px;color:var(--ink-2)"><input type="checkbox" data-act="compare" data-id="${t.id}" ${cmp?'checked':''}>เพิ่มในรายการเปรียบเทียบ</label>
+</div>
+<div class="side">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="display:flex;flex-direction:column;line-height:1.3"><b class="num" style="font-family:var(--f-display);font-size:26px">${baht(t.price)}</b><span class="muted" style="font-size:13px">ต่อชั่วโมง${(t.modes||[]).includes('onsite')&&t.price_onsite!==t.price?` · ตัวต่อตัว ${baht(t.price_onsite)}`:''}</span></div>
+<button class="icon-btn" data-act="save" data-id="${t.id}" aria-pressed="${saved}" aria-label="${saved?'เลิกบันทึก':'บันทึก'} ${esc(t.name)}">${I.heart(20,saved)}</button></div>
+${ratingTxt(t)}
+<div style="display:flex;flex-direction:column;gap:8px"><button class="btn btn-primary" data-act="bookFrom" data-id="${t.id}">จองเรียน</button><a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์</a></div>
+</div></article>`;
+}
+function renderResults(){
+ const box=$('#results');if(!box)return;
+ if(!tutLoaded){box.innerHTML=loadingBox();return}
+ if(tutErr){box.innerHTML=errBox(tutErr);return}
+ const r=filtered();
+ $('#rcount').textContent=`พบ ${r.length} ติวเตอร์`;
+ $('#rtitle').textContent=searchTitle();
+ $('#chips').innerHTML=activeChips();
+ box.innerHTML=r.length?r.map(resultCard).join(''):TUT.length?`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่พบติวเตอร์ที่ตรงกับเงื่อนไข</b><span>ลองลดตัวกรองบางข้อ เช่น ขยายช่วงราคา หรือเลือกเรียนออนไลน์</span><button class="btn btn-outline" data-act="clearFilters">ล้างตัวกรองทั้งหมด</button></div>`:`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่มีติวเตอร์ในระบบ</b><span>ชวนติวเตอร์ที่รู้จักมาสมัคร หรือสมัครเองได้เลย</span><a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a></div>`;
+}
+function viewSearch(){
+ const sel=(a,b)=>a===b?'selected':'';
+ return `<div style="background:var(--page)"><div class="wrap" style="padding-block:28px 72px">
+<nav aria-label="breadcrumb" style="font-size:14px;display:flex;gap:8px;color:var(--muted)"><a href="#home" style="color:var(--muted)">หน้าแรก</a><span aria-hidden="true">/</span><span>ค้นหาติวเตอร์</span></nav>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;margin:6px 0 16px">
+<div><h1 id="rtitle" style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2.1rem)">${esc(searchTitle())}</h1><span id="rcount" class="muted" aria-live="polite"></span></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<button class="btn btn-outline filter-toggle" data-act="toggleFilters" aria-controls="filters">${I.filter} ตัวกรอง</button>
+<label class="field" for="sort" style="flex-direction:row;align-items:center;gap:10px;font-weight:500">เรียงตาม<select class="input" id="sort" data-f="sort" style="width:auto">
+${[['rec','แนะนำ'],['new','สมัครล่าสุด'],['rating','คะแนนรีวิวสูงสุด'],['priceAsc','ราคาต่ำ → สูง'],['priceDesc','ราคาสูง → ต่ำ'],['exp','ประสบการณ์มากที่สุด']].map(([v,l])=>`<option value="${v}" ${sel(F.sort,v)}>${l}</option>`).join('')}</select></label>
+</div></div>
+<div id="chips" class="chips" style="margin-bottom:20px"></div>
+<div class="search-grid">
+<aside id="filters" class="card filters collapsed" aria-label="ตัวกรอง">
+<fieldset><label class="field" for="f-q">ค้นหาชื่อหรือคำสำคัญ<input class="input" id="f-q" data-f="q" value="${esc(F.q)}" placeholder="เช่น ชื่อครู, IELTS"></label></fieldset>
+<fieldset><legend>วิชาที่ต้องการเรียน</legend>${SUBJECTS.map((s,i)=>`<label class="check"><input type="checkbox" id="f-s${i}" data-f="subject" value="${s}" ${F.subjects.includes(s)?'checked':''}>${s}</label>`).join('')}</fieldset>
+<fieldset><legend>ระดับชั้น</legend><div style="display:flex;flex-wrap:wrap;gap:8px">${['',...LEVELS].map(l=>`<button type="button" class="pill" data-f="level" data-v="${l}" aria-pressed="${F.level===l}">${l||'ทั้งหมด'}</button>`).join('')}</div></fieldset>
+<fieldset><legend>ราคาต่อชั่วโมง (บาท)</legend><div style="display:flex;gap:10px;align-items:flex-end">
+<label class="field" for="f-min" style="flex:1;font-weight:500;font-size:13px;color:var(--muted)">ต่ำสุด<input class="input num" id="f-min" type="number" min="0" step="50" inputmode="numeric" data-f="min" value="${esc(F.min)}" placeholder="0"></label>
+<span class="muted" style="padding-bottom:10px">–</span>
+<label class="field" for="f-max" style="flex:1;font-weight:500;font-size:13px;color:var(--muted)">สูงสุด<input class="input num" id="f-max" type="number" min="0" step="50" inputmode="numeric" data-f="max" value="${esc(F.max)}" placeholder="ไม่จำกัด"></label></div></fieldset>
+<fieldset><label class="field" for="f-prov">จังหวัด<select class="input" id="f-prov" data-f="province"><option value="">ทุกจังหวัด</option>${PROVINCES.map(p=>`<option ${sel(F.province,p)}>${p}</option>`).join('')}</select></label><span class="muted" style="font-size:13px;font-weight:400">ติวเตอร์ที่สอนออนไลน์จะแสดงด้วยเสมอ</span></fieldset>
+<fieldset><legend>รูปแบบการเรียน</legend><div class="seg" role="group" aria-label="รูปแบบการเรียน">${[['all','ทั้งหมด'],['online','ออนไลน์'],['onsite','On-site']].map(([v,l])=>`<button type="button" data-f="mode" data-v="${v}" aria-pressed="${F.mode===v}">${l}</button>`).join('')}</div></fieldset>
+<fieldset><legend>ประสบการณ์ติวเตอร์</legend>${[[0,'ทั้งหมด'],[1,'1 ปีขึ้นไป'],[3,'3 ปีขึ้นไป'],[5,'5 ปีขึ้นไป']].map(([v,l])=>`<label class="check"><input type="radio" name="exp" data-f="exp" value="${v}" ${F.exp===v?'checked':''}>${l}</label>`).join('')}</fieldset>
+<fieldset><legend>คะแนนรีวิว</legend>${[[4.5,'4.5 ดาวขึ้นไป'],[4,'4.0 ดาวขึ้นไป'],[0,'ทั้งหมด']].map(([v,l])=>`<label class="check"><input type="radio" name="rating" data-f="rating" value="${v}" ${F.rating===v?'checked':''}>${l}</label>`).join('')}
+<label class="check" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--line)"><input type="checkbox" data-f="verified" ${F.verified?'checked':''}>แสดงเฉพาะ Verified Tutor</label></fieldset>
+</aside>
+<section id="results" class="results" aria-label="ผลการค้นหา"></section>
+</div></div></div>`;
+}
+
+/* ---------- PROFILE + BOOKING ---------- */
+function bookingDates(){const o=[];for(let i=1;i<=14;i++)o.push(iso(addDays(i)));return o}
+function slotsFor(t,ds,taken){
+ const d=dowIdx(parseISO(ds));const tk=(taken||[]).filter(x=>x.day===ds).map(x=>x.start_time);
+ const out=[];PERIODS.forEach((p,pi)=>{if(t.avail&&t.avail[pi]&&t.avail[pi][d])p.slots.forEach(s=>out.push({time:s,taken:tk.includes(s)}))});return out;
+}
+function ensureB(t,taken){
+ if(!B||B.tutorId!==t.id){
+  const dates=bookingDates();let di=0;while(di<dates.length-1&&!slotsFor(t,dates[di],taken).some(s=>!s.taken))di++;
+  B={tutorId:t.id,mode:(t.modes||['online'])[0],subject:(t.subjects||[''])[0],date:dates[di],time:'',hours:1.5,student:'',note:'',sent:null,weekOffset:di>=7?7:0};
+ }
+}
+function bookingCard(t){
+ const P=cache['prof:'+t.id];const taken=P&&P.taken||[];
+ ensureB(t,taken);
+ if(B.sent){const b=B.sent;return `<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start"><span style="display:flex;width:52px;height:52px;border-radius:16px;background:var(--ok-bg);color:var(--ok);align-items:center;justify-content:center">${I.check(26)}</span><h2 style="font-size:22px;font-weight:700">ส่งคำขอจองแล้ว</h2><p class="muted">${esc(nick(t))} จะเห็นคำขอในแดชบอร์ดและยืนยันเวลากลับมา ติดตามสถานะได้ในแดชบอร์ดของคุณ</p><div class="card" style="padding:14px 16px;width:100%;font-size:15px;display:flex;flex-direction:column;gap:2px"><b style="font-weight:600">${esc(b.subject)} · ${modeLabel(b.mode)}</b><span class="muted">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)}${b.student?' · '+esc(b.student):''}</span><span class="num" style="font-weight:600">${baht(b.rate*b.hours)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;width:100%"><a class="btn btn-primary" href="#student" style="flex:1">ไปที่แดชบอร์ด</a><button class="btn btn-outline" data-act="bookAgain" style="flex:1">จองเวลาอื่น</button></div></div>`}
+ if(uid()===t.id)return `<div style="display:flex;flex-direction:column;gap:12px"><b style="font-family:var(--f-display);font-size:20px">นี่คือโปรไฟล์ของคุณ</b><p class="muted">ผู้ปกครองจะเห็นกล่องจองเรียนตรงนี้</p><a class="btn btn-primary" href="#tutor-dashboard">ไปที่แดชบอร์ดติวเตอร์</a></div>`;
+ const rate=B.mode==='online'?t.price:t.price_onsite;
+ const dates=bookingDates().slice(B.weekOffset,B.weekOffset+7);
+ const slots=slotsFor(t,B.date,taken);
+ if(B.time&&!slots.some(s=>s.time===B.time&&!s.taken))B.time='';
+ const studs=(cache['students']&&Array.isArray(cache['students']))?cache['students']:[];
+ return `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><b class="num" style="font-family:var(--f-display);font-size:30px">${baht(rate)}<span class="muted" style="font-size:15px;font-weight:500"> / ชั่วโมง</span></b>${ratingTxt(t)}</div>
+${(t.modes||[]).length>1?`<div class="seg" role="group" aria-label="รูปแบบการเรียน">${t.modes.map(m=>`<button type="button" data-b="mode" data-v="${m}" aria-pressed="${B.mode===m}">${modeLabel(m)} · ${baht(m==='online'?t.price:t.price_onsite)}</button>`).join('')}</div>`:`<span class="badge b-neutral" style="align-self:flex-start;font-size:13px">${(t.modes||[])[0]==='online'?'สอนออนไลน์เท่านั้น':'สอนตัวต่อตัวเท่านั้น'}</span>`}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:10px">
+<label class="field" for="bk-subj">วิชา<select class="input" id="bk-subj" data-b="subject">${(t.subjects||[]).map(s=>`<option ${B.subject===s?'selected':''}>${esc(s)}</option>`).join('')}</select></label>
+<label class="field" for="bk-hours">ระยะเวลา<select class="input" id="bk-hours" data-b="hours">${[1,1.5,2].map(h=>`<option value="${h}" ${B.hours===h?'selected':''}>${h} ชั่วโมง</option>`).join('')}</select></label></div>
+<div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center"><span class="field">เลือกวัน</span><span style="display:flex;gap:4px"><button class="icon-btn" style="width:36px;height:36px" data-act="week" data-v="0" ${B.weekOffset===0?'disabled':''} aria-label="สัปดาห์นี้">${I.back}</button><button class="icon-btn" style="width:36px;height:36px" data-act="week" data-v="7" ${B.weekOffset===7?'disabled':''} aria-label="สัปดาห์ถัดไป"><span style="transform:scaleX(-1);display:flex">${I.back}</span></button></span></div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">${dates.map(ds=>{const d=parseISO(ds);const has=slotsFor(t,ds,taken).some(s=>!s.taken);return `<button type="button" class="slot" style="display:flex;flex-direction:column;align-items:center;line-height:1.25;padding:6px 0;min-height:54px" data-b="date" data-v="${ds}" aria-pressed="${B.date===ds}" ${has?'':'disabled'} aria-label="${fmtDate(ds)}${has?'':' ไม่มีเวลาว่าง'}"><span style="font-size:12px">${DOW[dowIdx(d)]}</span><b style="font-size:16px">${d.getDate()}</b></button>`}).join('')}</div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="field">เลือกเวลาเริ่ม · ${fmtDate(B.date)}</span>
+${!P?`<p class="muted" style="font-size:14px">กำลังโหลดเวลาว่าง…</p>`:slots.length?`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">${slots.map(s=>`<button type="button" class="slot" data-b="time" data-v="${s.time}" aria-pressed="${B.time===s.time}" ${s.taken?'disabled aria-label="'+s.time+' ถูกจองแล้ว"':''}>${s.time}</button>`).join('')}</div>`:`<p class="muted" style="font-size:14px">วันนี้ติวเตอร์ไม่มีเวลาว่าง ลองเลือกวันอื่น</p>`}</div>
+<label class="field" for="bk-stu">ชื่อผู้เรียน<input class="input" id="bk-stu" data-b="student" list="stu-list" value="${esc(B.student)}" placeholder="เช่น น้องมิว ม.5"><datalist id="stu-list">${studs.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist></label>
+<label class="field" for="bk-note">ข้อความถึงติวเตอร์ (ไม่บังคับ)<textarea class="input" id="bk-note" data-b="note" rows="2" placeholder="เช่น เป้าหมาย หรือบทที่อยากเน้น">${esc(B.note)}</textarea></label>
+<div style="display:flex;justify-content:space-between;font-size:15px;padding-top:12px;border-top:1px solid var(--line)"><span class="muted num">${B.hours} ชม. × ${baht(rate)}</span><b class="num">${baht(rate*B.hours)}</b></div>
+<p id="bk-err" style="color:var(--danger);font-size:14px" hidden></p>
+<button class="btn btn-primary btn-lg" data-act="submitBooking">จองเรียนกับติวเตอร์คนนี้</button>
+<button class="btn btn-outline" data-act="message" data-id="${t.id}">${I.chat()} ส่งข้อความสอบถาม</button>
+<span class="muted" style="font-size:13px;text-align:center">ส่งคำขอจองได้ฟรี ค่าเรียนตกลงและชำระกับติวเตอร์โดยตรง</span>`;
+}
+function renderBooking(){const t=tutor(B&&B.tutorId);const el=$('#book');if(t&&el)el.innerHTML=bookingCard(t)}
+function viewProfile(id){
+ const t=tutor(id);
+ if(!tutLoaded)return `<div class="wrap" style="padding-block:60px">${loadingBox()}</div>`;
+ if(!t)return `<div class="wrap" style="padding-block:80px"><div class="empty card"><b style="font-size:18px;color:var(--ink)">ไม่พบโปรไฟล์ติวเตอร์นี้</b><a class="btn btn-primary" href="#search">กลับไปค้นหา</a></div></div>`;
+ const P=need('prof:'+id,async()=>{const [rv,tk]=await Promise.all([q(sb.from('reviews').select('*').eq('tutor_id',id).order('created_at',{ascending:false}).limit(50)),q(sb.rpc('taken_slots',{p_tutor:id}))]);return {reviews:rv||[],taken:tk||[]}});
+ if(uid())need('students',()=>q(sb.from('students').select('*').eq('parent_id',uid()).order('created_at')));
+ const reviews=P&&P.reviews||[];
+ const saved=L.saved.includes(t.id),cmp=L.compare.includes(t.id);
+ const dist=[5,4,3,2,1].map(s=>reviews.filter(r=>r.score===s).length);const maxd=Math.max(1,...dist);
+ const docLabel={ok:'ยืนยันแล้ว',review:'กำลังตรวจสอบ',none:'ยังไม่ได้ส่ง'};const docs=t.docs||{};
+ return `<div style="background:var(--page)"><div class="wrap" style="padding-block:22px 72px">
+<a href="#search" style="display:inline-flex;gap:6px;align-items:center;font-size:14px;font-weight:500;margin-bottom:16px;min-height:32px">${I.back} กลับไปผลการค้นหา</a>
+<section class="card" style="overflow:hidden;margin-bottom:24px;border-radius:24px">
+<div aria-hidden="true" style="height:110px;background-color:#1E4ED8;background-image:radial-gradient(rgba(255,255,255,.18) 1px,transparent 1px);background-size:18px 18px"></div>
+<div style="padding:0 clamp(18px,3vw,32px) 24px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;margin-top:-52px">
+<span style="border:5px solid var(--surface);border-radius:30px;display:inline-flex">${av(t,118,48,24)}</span>
+<div style="flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><h1 style="font-weight:700;font-size:clamp(1.6rem,3vw,2.2rem)">${esc(t.name)}${t.nick?` <span class="muted" style="font-weight:500;font-size:.7em">(${esc(t.nick)})</span>`:''}</h1>${verifiedBadge(t,true)}</div>
+${t.headline?`<p style="font-size:17px;color:var(--ink-2)">${esc(t.headline)}</p>`:''}
+<div style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted);align-items:center">${ratingTxt(t)}<span style="display:flex;gap:6px;align-items:center">${I.pin}${esc(t.province)}</span><span style="display:flex;gap:6px;align-items:center">${I.screen}${modesText(t.modes)}</span></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" data-act="save" data-id="${t.id}" aria-pressed="${saved}" style="${saved?'color:#E5484D;border-color:#F3B0B2':''}">${I.heart(18,saved)} ${saved?'บันทึกแล้ว':'บันทึก'}</button><button class="btn btn-outline" data-act="compare" data-id="${t.id}" aria-pressed="${cmp}">${cmp?I.check(16)+' อยู่ในรายการเปรียบเทียบ':'เปรียบเทียบ'}</button></div>
+</div>
+<nav aria-label="หัวข้อในโปรไฟล์" style="display:flex;flex-wrap:wrap;gap:0 26px;padding:0 clamp(18px,3vw,32px);border-top:1px solid var(--line);font-size:15px">${[['p-about','เกี่ยวกับ'],['p-edu','การศึกษาและประสบการณ์'],['p-subj','วิชาและราคา'],['p-sched','ตารางเวลา'],['p-rev','รีวิว']].map(([i,l])=>`<button data-act="scrollTo" data-target="${i}" style="background:none;border:0;padding:13px 0;color:var(--ink-2);cursor:pointer;font-weight:500">${l}</button>`).join('')}</nav>
+</section>
+<div class="prof-grid"><div class="prof-main">
+<section id="p-about" class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">เกี่ยวกับฉันและเทคนิคการสอน</h2><p style="color:var(--ink-2);max-width:68ch;white-space:pre-line">${esc(t.bio||'ติวเตอร์ยังไม่ได้เขียนแนะนำตัว')}</p></section>
+<section id="p-edu" class="card pad" style="display:flex;flex-wrap:wrap;gap:32px">
+<div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">ประวัติการศึกษา</h2>
+<div style="border-left:2px solid var(--line);padding-left:18px;display:flex;flex-direction:column;gap:4px"><b style="font-weight:600">${esc(t.faculty||'—')}</b><span class="muted" style="font-size:14px">${esc(t.uni)}${t.edu_status?' · '+esc(t.edu_status):''}</span><span class="badge ${docs.edu==='ok'?'b-ok':'b-warn'}" style="align-self:flex-start;margin-top:4px">${docs.edu==='ok'?'ตรวจสอบวุฒิแล้ว':'ยังไม่ได้ตรวจสอบวุฒิ'}</span></div></div>
+<div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">ประสบการณ์การสอน</h2>
+<p style="color:var(--ink-2);white-space:pre-line"><b style="font-weight:600">${t.exp} ปี</b>${t.experience?'\n'+esc(t.experience):''}</p>
+<div style="background:var(--bg-soft);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:14px"><b style="font-weight:600;font-size:15px">การยืนยันตัวตน</b>${[['id','บัตรประชาชน'],['edu','ประวัติการศึกษา'],['cert','ใบรับรอง / เอกสาร']].map(([k,l])=>`<span style="display:flex;gap:8px;align-items:center">${docs[k]==='ok'?I.check(15,'var(--ok)'):I.clock}${l} · ${docLabel[docs[k]||'none']}</span>`).join('')}</div>
+</div></section>
+<section id="p-subj" class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">วิชาที่รับสอนและราคา</h2>
+<div class="tbl-wrap" style="border:1px solid var(--line);border-radius:14px"><table class="tbl" style="min-width:480px"><thead><tr style="background:var(--bg-soft)"><th>วิชา</th><th>ระดับชั้น</th><th>ออนไลน์</th><th>ตัวต่อตัว</th></tr></thead><tbody>
+${(t.subjects||[]).map(s=>`<tr><td>${esc(s)}</td><td class="muted">${esc((t.levels||[]).join(', '))}</td><td class="num" style="font-weight:600">${(t.modes||[]).includes('online')?baht(t.price)+'/ชม.':'–'}</td><td class="num" style="font-weight:600">${(t.modes||[]).includes('onsite')?baht(t.price_onsite)+'/ชม.':'–'}</td></tr>`).join('')}</tbody></table></div>
+${(t.modes||[]).includes('onsite')&&t.areas?`<span class="muted" style="font-size:14px">พื้นที่ที่เดินทางไปสอนได้: ${esc(t.areas)}</span>`:''}</section>
+<section id="p-sched" class="card pad" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center"><h2 style="font-size:22px;font-weight:600">ตารางเวลาที่สะดวกสอน</h2><div style="display:flex;gap:14px;font-size:13px" class="muted"><span style="display:flex;gap:6px;align-items:center"><i style="width:14px;height:14px;border-radius:4px;background:var(--primary);display:inline-block"></i>ว่าง</span><span style="display:flex;gap:6px;align-items:center"><i style="width:14px;height:14px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);display:inline-block"></i>ไม่ว่าง</span></div></div>
+<div class="tbl-wrap"><div class="avail" role="table" aria-label="ตารางเวลาว่างรายสัปดาห์"><span role="columnheader"></span>${DOW.map(d=>`<span role="columnheader" style="text-align:center;font-weight:600;color:var(--ink-2)">${d}</span>`).join('')}
+${PERIODS.map((p,pi)=>`<span role="rowheader" style="display:flex;flex-direction:column;justify-content:center;line-height:1.3"><b style="font-weight:500">${p.label}</b><span class="muted" style="font-size:12px">${p.time}</span></span>${DOW.map((d,di)=>{const on=t.avail&&t.avail[pi]&&t.avail[pi][di];return `<span role="cell" class="c ${on?'on':''}" aria-label="${d} ${p.label} ${on?'ว่าง':'ไม่ว่าง'}"></span>`}).join('')}`).join('')}
+</div></div></section>
+<section id="p-rev" class="card pad" style="display:flex;flex-direction:column;gap:20px"><h2 style="font-size:22px;font-weight:600">รีวิวจากนักเรียนและผู้ปกครอง</h2>
+${!P?loadingBox():P.error?errBox(P.error):t.rating_count?`<div style="display:flex;flex-wrap:wrap;gap:30px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--line)"><div style="display:flex;flex-direction:column;gap:2px"><b class="num" style="font-family:var(--f-display);font-size:48px;line-height:1">${rating(t).toFixed(1)}</b><span style="display:flex;gap:2px">${[1,2,3,4,5].map(n=>I.star(18,n<=Math.round(rating(t)))).join('')}</span><span class="muted" style="font-size:14px">จาก ${t.rating_count} รีวิว · ผู้เรียนจริงทั้งหมด</span></div>
+<div style="flex:1 1 260px;display:flex;flex-direction:column;gap:6px">${[5,4,3,2,1].map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px" class="muted"><span style="width:38px">${s} ดาว</span><span class="bar"><span style="width:${Math.round(dist[i]/maxd*100)}%"></span></span><span class="num" style="width:24px;text-align:right">${dist[i]}</span></div>`).join('')}</div></div>`:''}
+${P&&!P.error?(reviews.length?reviews.map(r=>`<article style="display:flex;flex-direction:column;gap:8px;padding-bottom:18px;border-bottom:1px solid var(--line)"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center"><div style="display:flex;gap:12px;align-items:center"><span class="av" style="width:40px;height:40px;font-size:16px;background:var(--surface-2);color:var(--ink-2)">${initial(r.author_name)}</span><div style="display:flex;flex-direction:column;line-height:1.35"><b style="font-weight:600">${esc(r.author_name||'ผู้เรียน')}</b><span class="muted" style="font-size:13px">${esc(r.subject)}</span></div></div><div style="display:flex;gap:10px;align-items:center;font-size:13px" class="muted"><span style="display:flex;gap:2px">${[1,2,3,4,5].map(n=>I.star(14,n<=r.score)).join('')}</span>${fmtDT(r.created_at)}</div></div>${r.body?`<p style="color:var(--ink-2);white-space:pre-line">${esc(r.body)}</p>`:''}<span style="display:flex;gap:8px;align-items:center;font-size:12px;font-weight:600;color:var(--ok)">${I.check(12)}เรียนจริงผ่าน Tiwly</span></article>`).join(''):`<div class="empty">ยังไม่มีรีวิว เมื่อเรียนจบผ่าน Tiwly ผู้เรียนจะรีวิวได้ที่นี่</div>`):''}
+</section>
+</div>
+<aside id="book" class="card book" aria-label="จองเรียน">${bookingCard(t)}</aside>
+</div></div></div>`;
+}
+
+/* ---------- AUTH GATE ---------- */
+function loginGate(kind){
+ const isT=kind==='tutor';
+ return `<div class="wrap" style="padding-block:80px"><div class="card" style="max-width:560px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+<span style="display:flex;width:52px;height:52px;border-radius:16px;background:var(--tint);color:var(--link);align-items:center;justify-content:center">${isT?I.cal(24):I.shield(24)}</span>
+<h1 style="font-size:26px;font-weight:700">${isT?'แดชบอร์ดสำหรับติวเตอร์':'เข้าสู่ระบบเพื่อดูแดชบอร์ด'}</h1>
+<p class="muted">${isT?'จัดการคำขอจอง ตารางสอน ข้อความ และการยืนยันตัวตนได้ในที่เดียว':'ดูการจอง ข้อความกับติวเตอร์ ติวเตอร์ที่บันทึกไว้ และให้คะแนนหลังเรียน'}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px">${isT&&uid()?`<a class="btn btn-primary" href="#join">สร้างโปรไฟล์ติวเตอร์</a>`:isT?`<a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a><button class="btn btn-outline" data-act="auth" data-m="login">เข้าสู่ระบบ</button>`:`<button class="btn btn-primary" data-act="auth" data-m="login">เข้าสู่ระบบ</button><button class="btn btn-outline" data-act="auth" data-m="signup">สมัครสมาชิก</button>`}</div>
+</div></div>`;
+}
+
+/* ---------- MESSAGES (shared) ---------- */
+function threadsView(msgs,side){
+ /* side: 'parent' groups by tutor_id ; 'tutor' groups by parent_id */
+ if(!msgs)return loadingBox();
+ if(msgs.error)return errBox(msgs.error);
+ if(!msgs.length)return `<div class="empty">${side==='parent'?'ยังไม่มีข้อความ กด “ส่งข้อความสอบถาม” ในหน้าโปรไฟล์ติวเตอร์':'ยังไม่มีข้อความจากผู้ปกครอง'}</div>`;
+ const groups={};msgs.forEach(m=>{const k=side==='parent'?m.tutor_id:m.parent_id;(groups[k]=groups[k]||[]).push(m)});
+ return Object.entries(groups).sort((a,b)=>String(b[1][b[1].length-1].created_at).localeCompare(String(a[1][a[1].length-1].created_at))).map(([k,list])=>{
+  const t=side==='parent'?tutor(k):null;
+  const other=side==='parent'?(t?t.name:'ติวเตอร์'):((list.find(m=>m.sender_id===k)||{}).sender_name||'ผู้ปกครอง');
+  const tutorId=list[0].tutor_id,parentId=list[0].parent_id;
+  return `<div style="border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<b style="font-weight:600">${side==='parent'?'คุยกับ ':'จาก '}${esc(other)}</b>
+<div style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto">${list.map(m=>{const mine=m.sender_id===uid();return `<div style="align-self:${mine?'flex-end':'flex-start'};max-width:85%;background:${mine?'var(--tint)':'var(--surface-2)'};color:var(--ink);border-radius:14px;padding:8px 12px"><div style="white-space:pre-line">${esc(m.body)}</div><div class="muted" style="font-size:12px">${mine?'คุณ':esc(m.sender_name||'')} · ${fmtDT(m.created_at)}</div></div>`}).join('')}</div>
+<form data-form="reply" data-tutor="${tutorId}" data-parent="${parentId}" style="display:flex;gap:8px"><label class="sr" for="rp-${k}">ตอบกลับ</label><input class="input" id="rp-${k}" name="body" placeholder="พิมพ์ข้อความ…" autocomplete="off"><button class="btn btn-primary" type="submit">ส่ง</button></form></div>`}).join('');
+}
+
+/* ---------- STUDENT DASHBOARD ---------- */
+const STATUS={pending:['รอติวเตอร์ยืนยัน','b-warn'],confirmed:['ยืนยันแล้ว','b-ok'],done:['เรียนเสร็จแล้ว','b-info'],reviewed:['รีวิวแล้ว','b-neutral'],cancelled:['ยกเลิกแล้ว','b-neutral'],declined:['ติวเตอร์ไม่สะดวก','b-neutral']};
+const stBadge=s=>`<span class="badge ${(STATUS[s]||['',''])[1]}">${(STATUS[s]||[s])[0]}</span>`;
+function viewStudent(){
+ if(!uid())return loginGate('parent');
+ const bk=need('sbook',()=>q(sb.from('bookings').select('*').eq('parent_id',uid()).order('day',{ascending:false})));
+ const msgs=need('smsg',()=>q(sb.from('messages').select('*').eq('parent_id',uid()).order('created_at')));
+ const studs=need('students',()=>q(sb.from('students').select('*').eq('parent_id',uid()).order('created_at')));
+ const mine=Array.isArray(bk)?bk:[];
+ const today=todayISO();
+ const upcoming=mine.filter(b=>['confirmed','pending'].includes(b.status)&&b.day>=today).sort((a,b)=>(a.day+a.start_time).localeCompare(b.day+b.start_time));
+ const next=upcoming.find(b=>b.status==='confirmed');
+ const toRate=mine.filter(b=>b.status==='done');
+ let list=mine.slice();
+ if(studentTab==='upcoming')list=upcoming;
+ if(studentTab==='past')list=list.filter(b=>['done','reviewed','cancelled','declined'].includes(b.status));
+ const savedT=L.saved.map(tutor).filter(Boolean);
+ const secs=[['overview','ภาพรวม'],['bookings','การจองของฉัน'],['messages','ข้อความ'],['saved','ติวเตอร์ที่บันทึก'],['students','โปรไฟล์นักเรียน']];
+ const tn=id=>tutor(id)||{name:'ติวเตอร์',hue:220};
+ const nextCard=!bk?loadingBox():next?(()=>{const t=tn(next.tutor_id);return `<section class="card next pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:var(--on-navy-muted)">คาบเรียนถัดไป</span><span class="badge" style="background:#E6F5EF;color:#0B6B53">ยืนยันแล้ว</span></div>
+<div style="display:flex;gap:14px;align-items:center">${av(t,52,22,14)}<div style="display:flex;flex-direction:column;line-height:1.35"><b style="font-family:var(--f-display);font-weight:600;font-size:19px">${esc(next.subject)}${next.student?' · '+esc(next.student):''}</b><span style="color:var(--on-navy-muted);font-size:14px">กับ ${esc(t.name)}</span></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:#DCE3F5"><span>${fmtDate(next.day)} · ${next.start_time}–${endTime(next.start_time,next.hours)}</span><span>${modeLabel(next.mode)}</span></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" style="background:#fff;color:#0E1A3A" data-act="message" data-id="${next.tutor_id}">${I.chat()} ส่งข้อความ</button><a class="btn" style="border-color:var(--navy-line);color:#fff" href="#t-${next.tutor_id}">ดูโปรไฟล์ติวเตอร์</a></div></section>`})():`<section class="card pad empty" style="justify-content:center"><b style="color:var(--ink);font-size:17px">ยังไม่มีคาบเรียนที่ยืนยันแล้ว</b><span>${upcoming.length?'คำขอของคุณกำลังรอติวเตอร์ยืนยัน':'ค้นหาติวเตอร์แล้วส่งคำขอจองได้เลย'}</span><a class="btn btn-primary" href="#search">ค้นหาติวเตอร์</a></section>`;
+ const rateCards=toRate.map(b=>{const t=tn(b.tutor_id);const sc=rateDraft[b.id]||0;return `<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><span class="muted" style="font-size:14px">ให้คะแนนหลังเรียน</span><b style="font-family:var(--f-display);font-weight:600;font-size:19px;line-height:1.35">คาบ${esc(b.subject)}กับ${esc(nick(t))} เมื่อ ${fmtDate(b.day)} เป็นอย่างไรบ้าง?</b>
+<div role="group" aria-label="ให้คะแนน" style="display:flex;gap:6px">${[1,2,3,4,5].map(n=>`<button class="icon-btn" data-act="rateStar" data-id="${b.id}" data-v="${n}" aria-label="${n} ดาว">${I.star(24,n<=sc)}</button>`).join('')}</div>
+<label class="field" for="rv-${b.id}">เล่าประสบการณ์สั้น ๆ<textarea class="input" id="rv-${b.id}" rows="2" maxlength="1000" placeholder="เช่น อธิบายเข้าใจง่าย ตรงเวลา"></textarea></label>
+<p id="rverr-${b.id}" style="color:var(--danger);font-size:14px" hidden>เลือกจำนวนดาวก่อนส่งรีวิว</p>
+<button class="btn btn-primary" style="align-self:flex-start" data-act="submitReview" data-id="${b.id}">ส่งรีวิว</button></section>`}).join('');
+ const rows=list.map(b=>{const t=tn(b.tutor_id);let act='';
+  if(b.status==='pending'||b.status==='confirmed'){act=cancelArm===b.id?`<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span style="font-size:13px" class="muted">ยืนยันยกเลิก?</span><button class="btn btn-sm" style="background:var(--danger);color:#fff" data-act="setStatus" data-id="${b.id}" data-v="cancelled">ยกเลิกการจอง</button><button class="btn btn-ghost btn-sm" data-act="cancelNo">ไม่ใช่</button></span>`:`<span style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${b.status==='confirmed'&&b.day<=today?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">เรียนเสร็จแล้ว</button>`:''}<button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-act="cancelArm" data-id="${b.id}">ยกเลิก</button></span>`}
+  else if(b.status==='done')act=`<button class="btn btn-primary btn-sm" data-act="stuSec" data-v="overview">ให้คะแนน</button>`;
+  else act=`<a class="btn btn-outline btn-sm" href="#t-${b.tutor_id}">จองอีกครั้ง</a>`;
+  return `<tr><td class="num" style="white-space:nowrap">${fmtDate(b.day)}<br><span class="muted" style="font-size:13px">${b.start_time}–${endTime(b.start_time,b.hours)}</span></td><td><a href="#t-${b.tutor_id}" style="display:flex;align-items:center;gap:10px;color:var(--ink)">${av(t,32,14)}<span>${esc(t.name)}</span></a></td><td>${esc(b.subject)}${b.student?`<br><span class="muted" style="font-size:13px">${esc(b.student)}</span>`:''}</td><td class="muted">${modeLabel(b.mode)}</td><td class="num">${baht(b.rate*b.hours)}</td><td>${stBadge(b.status)}</td><td style="text-align:right">${act}</td></tr>`}).join('');
+ const cmpT=L.compare.map(tutor).filter(Boolean);
+ const show=k=>studentSection==='overview'||studentSection===k;
+ return `<div class="dash">
+<aside class="dash-side"><div class="hide-sm" style="display:flex;gap:10px;align-items:center;padding:4px 8px"><span class="av" style="--h:224;width:40px;height:40px;font-size:17px">${initial(myName())}</span><div style="line-height:1.3;min-width:0"><b style="font-weight:600">${esc(myName())}</b><br><span class="muted" style="font-size:13px">${me&&me.role==='tutor'?'ติวเตอร์ (มุมมองผู้เรียน)':'ผู้ปกครอง / นักเรียน'}</span></div></div>
+<nav class="dash-nav" aria-label="เมนูแดชบอร์ด">${secs.map(([k,l])=>`<button data-act="stuSec" data-v="${k}" aria-current="${studentSection===k}">${l}${k==='bookings'&&toRate.length?`<span class="badge" style="background:var(--primary);color:var(--primary-ink)">${toRate.length}</span>`:''}</button>`).join('')}${me&&me.role==='tutor'?`<a class="btn btn-ghost" href="#tutor-dashboard" style="justify-content:flex-start;padding:0 12px;font-weight:500;color:var(--ink-2)">แดชบอร์ดติวเตอร์ ${I.arrow}</a>`:''}</nav></aside>
+<main class="dash-main">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(myName())}</h1><span class="muted">${bk?`มีคาบที่กำลังจะมาถึง ${upcoming.length} คาบ${toRate.length?` · รอให้คะแนน ${toRate.length} คาบ`:''}`:'กำลังโหลดข้อมูล…'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-primary" href="#search">${I.search} ค้นหาติวเตอร์</a></div></div>
+${bk&&bk.error?errBox(bk.error):''}
+${studentSection==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))">${nextCard}${rateCards}</div>`:''}
+${studentSection==='bookings'&&rateCards?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))">${rateCards}</div>`:''}
+${show('bookings')?`<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:20px;font-weight:600">การจองของฉัน</h2><div class="seg" role="group" aria-label="กรองสถานะ">${[['all','ทั้งหมด'],['upcoming','กำลังจะมาถึง'],['past','ที่ผ่านมา']].map(([k,l])=>`<button data-act="stuTab" data-v="${k}" aria-pressed="${studentTab===k}">${l}</button>`).join('')}</div></div>
+${!bk?loadingBox():list.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:860px"><thead><tr><th>วันเวลา</th><th>ติวเตอร์</th><th>วิชา / ผู้เรียน</th><th>รูปแบบ</th><th>ค่าเรียน</th><th>สถานะ</th><th style="text-align:right">การจัดการ</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">ยังไม่มีการจองในหมวดนี้</div>`}</section>`:''}
+${show('messages')?`<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ข้อความกับติวเตอร์</h2>${threadsView(msgs,'parent')}</section>`:''}
+${show('saved')?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:20px;font-weight:600">ติวเตอร์ที่บันทึกไว้</h2><a href="#search" style="font-size:14px;font-weight:600">ค้นหาเพิ่ม</a></div>
+${savedT.length?savedT.map(t=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;flex-wrap:wrap">${av(t,44,18,12)}<div style="flex:1 1 160px;min-width:0;display:flex;flex-direction:column;line-height:1.35"><a href="#t-${t.id}" style="font-weight:600;color:var(--ink)">${esc(t.name)}</a><span class="muted num" style="font-size:13px">${esc((t.subjects||[]).join(' · '))} · ${baht(t.price)}/ชม.</span></div><div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" data-act="compare" data-id="${t.id}">${L.compare.includes(t.id)?'✓ เปรียบเทียบ':'เปรียบเทียบ'}</button><button class="icon-btn" style="width:38px;height:38px" data-act="save" data-id="${t.id}" aria-pressed="true" aria-label="เลิกบันทึก ${esc(t.name)}">${I.heart(18,true)}</button></div></div>`).join(''):`<div class="empty">กดรูปหัวใจในหน้าค้นหาเพื่อบันทึกติวเตอร์ที่สนใจ (บันทึกไว้ในเบราว์เซอร์นี้)</div>`}</section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="font-size:20px;font-weight:600">เปรียบเทียบติวเตอร์</h2>${cmpT.length>=2?`<button class="btn btn-outline btn-sm" data-act="openCompare">ขยายดู</button>`:''}</div>
+${cmpT.length?compareTable(cmpT,true):`<div class="empty">เลือก “เปรียบเทียบ” จากติวเตอร์ที่บันทึกไว้หรือในหน้าค้นหา</div>`}</section></div>`:''}
+${studentSection==='students'?`<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:20px;font-weight:600">โปรไฟล์นักเรียน</h2>
+${!studs?loadingBox():studs.error?errBox(studs.error):studs.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px">${studs.map((s,i)=>`<div style="border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center"><span class="av" style="--h:${(i*67+224)%360};width:44px;height:44px;font-size:18px">${initial(s.name.replace('น้อง',''))}</span><div style="flex:1;line-height:1.35;min-width:0"><b style="font-weight:600">${esc(s.name)}</b><br><span class="muted" style="font-size:13px">${esc(s.level)}${s.goal?' · '+esc(s.goal):''}</span></div><button class="icon-btn" style="width:36px;height:36px" data-act="rmStudent" data-id="${s.id}" aria-label="ลบโปรไฟล์ ${esc(s.name)}">${I.x(14)}</button></div>`).join('')}</div>`:`<div class="empty">ยังไม่มีโปรไฟล์นักเรียน เพิ่มไว้เพื่อเลือกชื่อได้เร็วตอนจอง</div>`}
+<form data-form="student" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px;align-items:end;border-top:1px solid var(--line);padding-top:16px">
+<label class="field" for="st-name">ชื่อเล่นนักเรียน<input class="input" id="st-name" name="name" placeholder="เช่น น้องเจ" maxlength="60"></label>
+<label class="field" for="st-level">ระดับชั้น<select class="input" id="st-level" name="level">${LEVELS.map(l=>`<option>${l}</option>`).join('')}</select></label>
+<label class="field" for="st-goal">เป้าหมาย (ไม่บังคับ)<input class="input" id="st-goal" name="goal" placeholder="เช่น สอบเข้า ม.4"></label>
+<button class="btn btn-primary" type="submit">+ เพิ่มโปรไฟล์นักเรียน</button></form></section>`:''}
+</main></div>`;
+}
+function compareTable(list,compact){
+ const best=(fn,low)=>{const v=list.map(fn);const b=low?Math.min(...v):Math.max(...v);return v.map(x=>x===b&&list.length>1)};
+ const pb=best(t=>t.price,true),rb=best(t=>t.rating_count?rating(t):0),eb=best(t=>t.exp);
+ const rows=[
+ ['ราคาออนไลน์/ชม.',list.map((t,i)=>((t.modes||[]).includes('online')?baht(t.price):'–')+(pb[i]?' <span class="badge b-ok">ถูกที่สุด</span>':''))],
+ ['ราคาตัวต่อตัว/ชม.',list.map(t=>(t.modes||[]).includes('onsite')?baht(t.price_onsite):'–')],
+ ['คะแนนรีวิว',list.map((t,i)=>(t.rating_count?`★ ${rating(t).toFixed(1)} (${t.rating_count})`:'ใหม่')+(rb[i]&&t.rating_count?' <span class="badge b-ok">สูงสุด</span>':''))],
+ ['ประสบการณ์',list.map((t,i)=>`${t.exp} ปี`+(eb[i]?' <span class="badge b-ok">มากสุด</span>':''))],
+ ['วิชา',list.map(t=>esc((t.subjects||[]).join(', ')))],
+ ['ระดับชั้น',list.map(t=>esc((t.levels||[]).join(', ')))],
+ ['การศึกษา',list.map(t=>esc((t.faculty||'')+' '+(t.uni||'')))],
+ ['รูปแบบ / พื้นที่',list.map(t=>modesText(t.modes)+'<br><span class="muted" style="font-size:13px">'+esc(t.province)+'</span>')],
+ ['Verified',list.map(t=>t.verified?'<span class="badge b-ok">ยืนยันแล้ว</span>':'<span class="badge b-warn">ยังไม่ยืนยัน</span>')]];
+ return `<div class="tbl-wrap"><table class="tbl" style="min-width:${compact?380:560}px;font-size:${compact?14:15}px"><thead><tr><th><span class="sr">หัวข้อ</span></th>${list.map(t=>`<th style="color:var(--ink)"><a href="#t-${t.id}" style="display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px">${av(t,30,13)}${esc(compact?nick(t):t.name)}</a></th>`).join('')}</tr></thead><tbody>${rows.map(([k,v])=>`<tr><th scope="row" style="font-weight:500;padding:12px">${k}</th>${v.map(x=>`<td class="num">${x}</td>`).join('')}</tr>`).join('')}${compact?'':`<tr><th></th>${list.map(t=>`<td><a class="btn btn-primary btn-sm" href="#t-${t.id}">จองเรียน</a></td>`).join('')}</tr>`}</tbody></table></div>`;
+}
+
+/* ---------- TUTOR DASHBOARD ---------- */
+function viewTutorDash(){
+ if(!uid())return loginGate('tutor');
+ if(!myTutor)return loginGate('tutor');
+ const t=myTutor;
+ const bk=need('tbook',()=>q(sb.from('bookings').select('*').eq('tutor_id',uid()).order('day')));
+ const msgs=need('tmsg',()=>q(sb.from('messages').select('*').eq('tutor_id',uid()).order('created_at')));
+ const mine=Array.isArray(bk)?bk:[];
+ const today=todayISO();
+ const pending=mine.filter(b=>b.status==='pending').sort((a,b)=>(a.day+a.start_time).localeCompare(b.day+b.start_time));
+ const sched=mine.filter(b=>b.status==='confirmed').sort((a,b)=>(a.day+a.start_time).localeCompare(b.day+b.start_time));
+ const paid=mine.filter(b=>['confirmed','done','reviewed'].includes(b.status));
+ const now=new Date();
+ const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return {key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:MONTHS[d.getMonth()]}});
+ const vals=months.map(m=>paid.filter(b=>String(b.day).slice(0,7)===m.key).reduce((s,b)=>s+b.rate*b.hours,0));
+ const hrs=paid.filter(b=>String(b.day).slice(0,7)===months[5].key).reduce((s,b)=>s+Number(b.hours),0);
+ const top=Math.max(1000,Math.ceil(Math.max(...vals)/1000)*1000);
+ const docs=t.docs||{};
+ const docList=[['id','บัตรประชาชน'],['edu','ประวัติการศึกษา / ใบปริญญา'],['cert','ใบรับรองหรือเอกสารเพิ่มเติม']];
+ const dl={ok:['ยืนยันแล้ว','b-ok'],review:['รอแอดมินตรวจสอบ','b-info'],none:['ยังไม่อัปโหลด','b-warn']};
+ const tabs=[['overview','ภาพรวม'],['requests','คำขอจอง'],['schedule','ตารางสอน'],['messages','ข้อความ'],['profile','แก้ไขโปรไฟล์']];
+ const show=k=>tutorTab==='overview'||tutorTab===k;
+ const reqRows=pending.map(b=>`<article style="border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center"><span class="av" style="width:44px;height:44px;font-size:17px;background:var(--surface-2);color:var(--ink-2)">${initial(b.parent_name)}</span><div style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;line-height:1.45"><b style="font-weight:600">${esc(b.parent_name||'ผู้ปกครอง')}${b.student?` · ผู้เรียน: ${esc(b.student)}`:''}</b><span style="font-size:14px;color:var(--ink-2)">${esc(b.subject)} · ${modeLabel(b.mode)}</span><span class="muted num" style="font-size:14px">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)} · ${baht(b.rate*b.hours)}</span>${b.note?`<span style="font-size:14px;color:var(--ink-2)">“${esc(b.note)}”</span>`:''}</div><div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="declined">ปฏิเสธ</button><button class="btn btn-primary btn-sm" data-act="setStatus" data-id="${b.id}" data-v="confirmed">ตอบรับ</button></div></article>`).join('');
+ return `<div class="dash">
+<aside class="dash-side navy"><div class="hide-sm" style="display:flex;gap:10px;align-items:center;padding:4px 8px">${av(t,40,17)}<div style="line-height:1.3;min-width:0"><b style="font-weight:600">${esc(nick(t))}</b><br><span style="font-size:13px;color:${t.verified?'#8FE0C4':'#F2C467'}">${t.verified?'Verified Tutor':'ยังไม่ยืนยันเอกสาร'}</span></div></div>
+<nav class="dash-nav" aria-label="เมนูติวเตอร์">${tabs.map(([k,l])=>`<button data-act="tutTab" data-v="${k}" aria-current="${tutorTab===k}">${l}${k==='requests'&&pending.length?`<span class="badge" style="background:#fff;color:#0E1A3A">${pending.length}</span>`:''}</button>`).join('')}<a class="btn btn-ghost" href="#t-${t.id}" style="justify-content:flex-start;padding:0 12px;font-weight:500;color:var(--on-navy-muted)">ดูโปรไฟล์สาธารณะ ${I.arrow}</a></nav></aside>
+<main class="dash-main">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(nick(t))}</h1><span class="muted">${!bk?'กำลังโหลดข้อมูล…':pending.length?`มีคำขอจองใหม่ ${pending.length} รายการรอการตอบรับ`:'ไม่มีคำขอจองค้างอยู่'}</span></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์สาธารณะ</a><button class="btn btn-primary" data-act="tutTab" data-v="profile">แก้ไขโปรไฟล์</button></div></div>
+${bk&&bk.error?errBox(bk.error):''}
+${!t.verified?`<section class="card pad" style="border-color:var(--warn);background:var(--warn-bg);display:flex;flex-direction:column;gap:6px"><b style="font-weight:600;color:var(--warn)">โปรไฟล์ของคุณแสดงในผลค้นหาแล้ว แต่ยังไม่มีเครื่องหมาย Verified</b><p style="color:var(--ink-2);font-size:14px">อัปโหลดบัตรประชาชน วุฒิการศึกษา และใบรับรองด้านล่าง ทีมงานจะตรวจสอบแล้วให้เครื่องหมาย Verified Tutor</p></section>`:''}
+${tutorTab==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px">
+<div class="card kpi"><span class="muted" style="font-size:14px">รายได้ที่ยืนยันแล้วเดือนนี้</span><b class="num">${baht(vals[5])}</b><span class="muted" style="font-size:13px">จากคาบที่ตอบรับแล้ว</span></div>
+<div class="card kpi"><span class="muted" style="font-size:14px">ชั่วโมงสอนเดือนนี้</span><b class="num">${hrs} ชม.</b><span class="muted" style="font-size:13px">คาบที่ยืนยัน ${sched.length} คาบ</span></div>
+<div class="card kpi"><span class="muted" style="font-size:14px">คำขอจองรอตอบ</span><b class="num">${pending.length}</b><span class="muted" style="font-size:13px">ควรตอบภายใน 24 ชม.</span></div>
+<div class="card kpi"><span class="muted" style="font-size:14px">คะแนนรีวิว</span><b class="num">${t.rating_count?rating(t).toFixed(1):'–'}</b><span class="muted" style="font-size:13px">${t.rating_count} รีวิว</span></div></div>`:''}
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+${show('requests')?`<section class="card pad" style="flex:3 1 460px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">คำขอจองเรียน</h2>${!bk?loadingBox():reqRows||`<div class="empty">ไม่มีคำขอใหม่ เมื่อผู้ปกครองส่งคำขอ จะแสดงที่นี่</div>`}</section>`:''}
+${show('schedule')?`<section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ตารางสอนที่ยืนยันแล้ว</h2>${!bk?loadingBox():sched.length?`<ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">${sched.map((b,i)=>{const d=parseISO(b.day);return `<li style="display:flex;gap:14px"><span style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;border-radius:12px;padding:8px 0;line-height:1.2;flex-shrink:0;background:${i===0?'var(--primary)':'var(--tint)'};color:${i===0?'var(--primary-ink)':'var(--tint-ink)'}"><span style="font-size:12px">${DOW[dowIdx(d)]}</span><b style="font-size:18px">${d.getDate()}</b></span><span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px"><span style="display:flex;flex-direction:column;line-height:1.4"><b style="font-weight:600">${esc(b.student||b.parent_name)} · ${esc(b.subject)}</b><span class="muted" style="font-size:14px">${b.start_time}–${endTime(b.start_time,b.hours)} · ${modeLabel(b.mode)}</span></span>${b.day<=today?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">สอนเสร็จแล้ว</button>`:''}</span></li>`}).join('')}</ol>`:`<div class="empty">ยังไม่มีคาบที่ยืนยัน</div>`}</section>`:''}
+</div>
+${show('messages')?`<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ข้อความจากผู้ปกครอง</h2>${threadsView(msgs,'tutor')}</section>`:''}
+${tutorTab==='overview'?`<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+<section class="card pad" style="flex:3 1 460px;min-width:0;display:flex;flex-direction:column;gap:14px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center"><h2 style="font-size:20px;font-weight:600">รายได้จากคาบที่ยืนยัน 6 เดือน</h2><span class="muted" style="font-size:13px">สเกลสูงสุด ${baht(top)}</span></div>
+<div class="chart" role="img" aria-label="กราฟรายได้รายเดือน ${months.map((m,i)=>m.label+' '+baht(vals[i])).join(', ')}">${vals.map((v,i)=>`<div class="col ${i===5?'now':''}"><span class="num" style="font-size:12px;font-weight:600;color:var(--ink-2)">${v?(v/1000).toFixed(1)+'k':'0'}</span><i style="height:${Math.max(2,Math.round(v/top*170))}px"></i></div>`).join('')}</div>
+<div class="chart-x">${months.map(m=>`<span>${m.label}</span>`).join('')}</div></section>
+<section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">เอกสารยืนยันตัวตน</h2><p class="muted" style="font-size:13px">ไฟล์เปิดดูได้เฉพาะคุณและแอดมิน (รูปภาพหรือ PDF ไม่เกิน 10 MB)</p>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">${docList.map(([k,l])=>`<li style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap"><span>${l}</span><span style="display:flex;gap:8px;align-items:center"><span class="badge ${dl[docs[k]||'none'][1]}">${dl[docs[k]||'none'][0]}</span>${docs[k]!=='ok'?`<label class="btn btn-outline btn-sm" style="cursor:pointer">${docs[k]==='review'?'ส่งใหม่':'อัปโหลด'}<input type="file" class="sr" data-up="${k}" accept="image/*,.pdf"></label>`:''}</span></li>`).join('')}</ul></section></div>`:''}
+${tutorTab==='profile'?profileEditor(t):''}
+</main></div>`;
+}
+function availEditor(grid,act){return `<div class="tbl-wrap"><div class="avail avail-edit" style="min-width:480px"><span></span>${DOW.map(d=>`<span style="text-align:center;font-weight:600;color:var(--ink-2)">${d}</span>`).join('')}${PERIODS.map((p,pi)=>`<span style="display:flex;flex-direction:column;justify-content:center;line-height:1.3"><b style="font-weight:500">${p.label}</b><span class="muted" style="font-size:12px">${p.time}</span></span>${DOW.map((d,di)=>`<button type="button" data-act="${act}" data-p="${pi}" data-d="${di}" aria-pressed="${!!(grid[pi]&&grid[pi][di])}" aria-label="${d} ${p.label}"></button>`).join('')}`).join('')}</div></div><span class="muted" style="font-size:13px">แตะช่องเพื่อสลับ ว่าง / ไม่ว่าง</span>`}
+function tutorFields(t,isJoin){
+ const has=(arr,v)=>(arr||[]).includes(v);
+ return `<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">${isJoin?'2. ':''}ข้อมูลส่วนตัว</h2>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">
+<label class="field" for="j-name">ชื่อ–นามสกุล *<input class="input" id="j-name" name="name" autocomplete="name" value="${esc(t.name||'')}" maxlength="120"></label>
+<label class="field" for="j-nick">ชื่อที่ให้นักเรียนเรียก<input class="input" id="j-nick" name="nick" placeholder="เช่น ครูบีม" value="${esc(t.nick||'')}" maxlength="40"></label></div>
+<label class="field" for="j-head">แนะนำตัวสั้น ๆ (แสดงบนการ์ด)<input class="input" id="j-head" name="headline" placeholder="เช่น ติวคณิต ม.ต้น ปูพื้นฐานแน่น" value="${esc(t.headline||'')}" maxlength="200"></label>
+<label class="field" for="j-bio">เกี่ยวกับฉันและเทคนิคการสอน<textarea class="input" id="j-bio" name="bio" rows="4" maxlength="3000">${esc(t.bio||'')}</textarea></label></section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">${isJoin?'3. ':''}ประวัติการศึกษาและประสบการณ์</h2>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px">
+<label class="field" for="j-uni">มหาวิทยาลัย *<input class="input" id="j-uni" name="uni" value="${esc(t.uni||'')}"></label>
+<label class="field" for="j-fac">คณะ / สาขา<input class="input" id="j-fac" name="faculty" value="${esc(t.faculty||'')}"></label>
+<label class="field" for="j-status">สถานะ<select class="input" id="j-status" name="edu_status">${['กำลังศึกษา','สำเร็จการศึกษา','ปริญญาโทขึ้นไป'].map(s=>`<option ${t.edu_status===s?'selected':''}>${s}</option>`).join('')}</select></label>
+<label class="field" for="j-exp">ประสบการณ์สอน (ปี)<input class="input num" id="j-exp" name="exp" type="number" min="0" max="60" value="${t.exp!=null?t.exp:1}"></label></div>
+<label class="field" for="j-xp">รายละเอียดประสบการณ์ (ไม่บังคับ)<textarea class="input" id="j-xp" name="experience" rows="2" maxlength="2000" placeholder="เช่น ติวเตอร์อิสระ 3 ปี, ผู้ช่วยสอนค่าย TCAS">${esc(t.experience||'')}</textarea></label></section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">${isJoin?'4. ':''}วิชา ราคา และพื้นที่</h2>
+<fieldset style="border:0;padding:0;margin:0"><legend class="field" style="margin-bottom:8px">วิชาที่ต้องการสอน *</legend><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:4px 12px">${SUBJECTS.map((s,i)=>`<label class="check"><input type="checkbox" name="subj" value="${s}" id="j-s${i}" ${has(t.subjects,s)?'checked':''}>${s}</label>`).join('')}</div></fieldset>
+<fieldset style="border:0;padding:0;margin:0"><legend class="field" style="margin-bottom:8px">ระดับชั้นที่สอน *</legend><div style="display:flex;flex-wrap:wrap;gap:4px 18px">${LEVELS.map((l,i)=>`<label class="check"><input type="checkbox" name="lvl" value="${l}" id="j-l${i}" ${has(t.levels,l)?'checked':''}>${l}</label>`).join('')}</div></fieldset>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px">
+<label class="field" for="j-price">ราคาออนไลน์ (บาท/ชม.) *<input class="input num" id="j-price" name="price" type="number" min="50" max="20000" step="10" value="${t.price||350}"></label>
+<label class="field" for="j-price2">ราคาตัวต่อตัว (บาท/ชม.)<input class="input num" id="j-price2" name="price_onsite" type="number" min="50" max="20000" step="10" value="${t.price_onsite||420}"></label>
+<label class="field" for="j-prov">จังหวัด *<select class="input" id="j-prov" name="province">${PROVINCES.map(p=>`<option ${t.province===p?'selected':''}>${p}</option>`).join('')}</select></label></div>
+<label class="field" for="j-areas">พื้นที่ที่สามารถเดินทางไปสอนได้<input class="input" id="j-areas" name="areas" placeholder="เช่น บางนา, พระโขนง, อ่อนนุช" value="${esc(t.areas||'')}"></label>
+<fieldset style="border:0;padding:0;margin:0;display:flex;gap:18px;flex-wrap:wrap"><legend class="field" style="margin-bottom:8px">รูปแบบการสอน *</legend><label class="check"><input type="checkbox" name="online" ${has(t.modes,'online')?'checked':''}>ออนไลน์</label><label class="check"><input type="checkbox" name="onsite" ${has(t.modes,'onsite')?'checked':''}>ตัวต่อตัว (On-site)</label></fieldset></section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:19px;font-weight:600">${isJoin?'5. ':''}ตารางเวลาว่าง</h2>${availEditor(joinAvail,'jAvail')}</section>`;
+}
+function profileEditor(t){joinAvail=(t.avail||joinAvail).map(r=>r.slice());return `<form data-form="tutorEdit" novalidate style="display:flex;flex-direction:column;gap:20px">${tutorFields(t,false)}<div id="j-err" role="alert" class="card pad" style="border-color:var(--danger);color:var(--danger)" hidden></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary btn-lg" type="submit">บันทึกการเปลี่ยนแปลง</button></div></form>`}
+
+/* ---------- JOIN ---------- */
+function viewJoin(){
+ if(myTutor)return `<div class="wrap" style="padding-block:80px"><div class="empty card"><b style="font-size:18px;color:var(--ink)">คุณมีโปรไฟล์ติวเตอร์แล้ว</b><a class="btn btn-primary" href="#tutor-dashboard">ไปที่แดชบอร์ดติวเตอร์</a></div></div>`;
+ const t={modes:['online'],levels:['มัธยมปลาย'],exp:1};
+ return `<div style="background:var(--page)"><div class="wrap" style="padding-block:36px 80px;max-width:920px">
+<span class="eyebrow">สมัครเป็นติวเตอร์ (ฟรี)</span>
+<h1 style="font-weight:700;font-size:clamp(1.8rem,3vw,2.4rem);margin:6px 0 8px">สร้างโปรไฟล์ติวเตอร์ของคุณ</h1>
+<p class="muted" style="margin-bottom:24px">โปรไฟล์จะแสดงในหน้าค้นหาทันทีหลังสมัคร และได้รับเครื่องหมาย Verified Tutor เมื่อทีมงานตรวจเอกสารแล้ว</p>
+<form data-form="join" novalidate style="display:flex;flex-direction:column;gap:20px">
+<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">1. บัญชีผู้ใช้</h2>
+${uid()?`<p>เข้าสู่ระบบอยู่ในชื่อ <b>${esc(session.user.email)}</b> โปรไฟล์ติวเตอร์จะผูกกับบัญชีนี้</p>`:`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">
+<label class="field" for="j-email">อีเมล *<input class="input" id="j-email" name="email" type="email" autocomplete="email"></label>
+<label class="field" for="j-pass">ตั้งรหัสผ่าน * (อย่างน้อย 6 ตัว)<input class="input" id="j-pass" name="pass" type="password" autocomplete="new-password"></label></div>
+<p class="muted" style="font-size:14px">มีบัญชีอยู่แล้ว? <button type="button" class="btn btn-ghost btn-sm" data-act="auth" data-m="login" style="color:var(--link)">เข้าสู่ระบบก่อน</button></p>`}</section>
+${tutorFields(t,true)}
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:19px;font-weight:600">6. เอกสารยืนยันตัวตน (อัปโหลดตอนนี้หรือภายหลังในแดชบอร์ดก็ได้)</h2><p class="muted" style="font-size:14px">เอกสารใช้เพื่อตรวจสอบเท่านั้น เปิดดูได้เฉพาะคุณและแอดมิน ไม่แสดงต่อสาธารณะ</p>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">${[['id','บัตรประชาชน'],['edu','ใบปริญญา / บัตรนักศึกษา'],['cert','ใบรับรองหรือผลสอบอื่น ๆ']].map(([k,l])=>`<label class="field" for="j-doc-${k}" style="border:1px dashed var(--line-2);border-radius:14px;padding:14px;cursor:pointer">${l}<input id="j-doc-${k}" name="doc-${k}" type="file" accept="image/*,.pdf" style="font-size:13px;font-weight:400;max-width:100%"></label>`).join('')}</div>
+<label class="check" style="font-size:14px"><input type="checkbox" name="agree" id="j-agree">ยืนยันว่าข้อมูลทั้งหมดเป็นความจริง และยอมรับ <a href="#privacy" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a></label></section>
+<div id="j-err" role="alert" class="card pad" style="border-color:var(--danger);color:var(--danger)" hidden></div>
+<div id="j-ok" role="status" class="card pad" style="border-color:var(--ok);background:var(--ok-bg);color:var(--ink)" hidden></div>
+<button class="btn btn-primary btn-lg" type="submit" style="align-self:flex-start">สร้างโปรไฟล์ติวเตอร์</button>
+</form></div></div>`;
+}
+function readTutorForm(fd){
+ const modes=[];if(fd.get('online'))modes.push('online');if(fd.get('onsite'))modes.push('onsite');
+ const price=Number(fd.get('price'));
+ return {name:(fd.get('name')||'').trim(),nick:(fd.get('nick')||'').trim(),headline:(fd.get('headline')||'').trim(),bio:(fd.get('bio')||'').trim(),uni:(fd.get('uni')||'').trim(),faculty:(fd.get('faculty')||'').trim(),edu_status:fd.get('edu_status')||'',exp:Math.max(0,Math.min(60,Number(fd.get('exp'))||0)),experience:(fd.get('experience')||'').trim(),subjects:fd.getAll('subj'),levels:fd.getAll('lvl'),price,price_onsite:Number(fd.get('price_onsite'))||price,province:fd.get('province')||'',areas:(fd.get('areas')||'').trim(),modes,avail:joinAvail.map(r=>r.slice())};
+}
+function validateTutor(r){
+ const e=[];if(r.name.length<2)e.push('กรอกชื่อ–นามสกุล');if(!r.uni)e.push('กรอกมหาวิทยาลัย');if(!r.subjects.length)e.push('เลือกวิชาที่สอนอย่างน้อย 1 วิชา');if(!r.levels.length)e.push('เลือกระดับชั้นที่สอนอย่างน้อย 1 ระดับ');if(!(r.price>=50&&r.price<=20000))e.push('ราคาออนไลน์ต้องอยู่ระหว่าง ฿50–฿20,000');if(!(r.price_onsite>=50&&r.price_onsite<=20000))e.push('ราคาตัวต่อตัวต้องอยู่ระหว่าง ฿50–฿20,000');if(!r.modes.length)e.push('เลือกรูปแบบการสอนอย่างน้อย 1 แบบ');if(!r.avail.flat().some(Boolean))e.push('เลือกเวลาว่างอย่างน้อย 1 ช่อง');return e;
+}
+function tutorRow(r){return Object.assign({},r,{id:uid(),hue:r.hue!=null?r.hue:Math.floor(Math.random()*360)})}
+function showErrs(errs){const box=$('#j-err');if(!box)return;if(!errs.length){box.hidden=true;return}box.innerHTML='<b>กรุณาแก้ไขข้อมูลต่อไปนี้</b><ul style="margin:6px 0 0;padding-left:20px">'+errs.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'center'})}
+async function uploadDoc(kind,file){
+ if(!file||!file.name)return false;
+ if(file.size>10*1024*1024)throw new Error('ไฟล์ใหญ่เกิน 10 MB');
+ const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const path=`${uid()}/${kind}-${Date.now()}.${ext}`;
+ const {error}=await sb.storage.from('tutor-docs').upload(path,file,{contentType:file.type||undefined});
+ if(error)throw error;
+ return true;
+}
+async function markDocs(kinds){
+ if(!kinds.length)return;
+ const docs=Object.assign({id:'none',edu:'none',cert:'none'},myTutor&&myTutor.docs);
+ kinds.forEach(k=>{if(docs[k]!=='ok')docs[k]='review'});
+ const {data,error}=await sb.from('tutors').update({docs}).eq('id',uid()).select().single();
+ if(error)throw error;myTutor=data;
+}
+
+/* ---------- ADMIN ---------- */
+function viewAdmin(){
+ if(!isAdmin)return `<div class="wrap" style="padding-block:80px"><div class="empty card"><b style="font-size:18px;color:var(--ink)">หน้านี้สำหรับแอดมินเท่านั้น</b></div></div>`;
+ const pendingT=TUT.filter(t=>!t.verified),okT=TUT.filter(t=>t.verified);
+ const docsFor=id=>need('docs:'+id,async()=>{const {data,error}=await sb.storage.from('tutor-docs').list(id,{limit:50,sortBy:{column:'created_at',order:'desc'}});if(error)throw error;if(!data||!data.length)return [];const paths=data.map(f=>id+'/'+f.name);const s=await sb.storage.from('tutor-docs').createSignedUrls(paths,600);if(s.error)throw s.error;return data.map((f,i)=>({name:f.name,url:(s.data[i]||{}).signedUrl}))});
+ const card=t=>{const d=docsFor(t.id);return `<article class="card pad" style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${av(t,44,18)}<div style="flex:1;min-width:0;line-height:1.4"><a href="#t-${t.id}" style="font-weight:600;color:var(--ink)">${esc(t.name)}</a><br><span class="muted" style="font-size:13px">${esc((t.subjects||[]).join(', '))} · ${esc(t.uni)} · สมัคร ${fmtDT(t.created_at)}</span></div>${verifiedBadge(t)}</div>
+<div style="font-size:14px;display:flex;flex-direction:column;gap:4px"><b style="font-weight:600">เอกสาร</b>${!d?'<span class="muted">กำลังโหลด…</span>':d.error?`<span style="color:var(--danger)">${esc(d.error)}</span>`:d.length?d.map(f=>`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join(''):'<span class="muted">ยังไม่มีไฟล์</span>'}</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">${t.verified?`<button class="btn btn-outline btn-sm" data-act="verify" data-id="${t.id}" data-v="0">ถอนเครื่องหมาย Verified</button>`:`<button class="btn btn-primary btn-sm" data-act="verify" data-id="${t.id}" data-v="1">อนุมัติ Verified</button>`}</div></article>`};
+ return `<div style="background:var(--page)"><div class="wrap" style="padding-block:32px 80px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">แอดมิน: ตรวจสอบติวเตอร์</h1><button class="btn btn-outline" data-act="refresh">รีเฟรช</button></div>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px"><div class="card kpi"><span class="muted">ติวเตอร์ทั้งหมด</span><b class="num">${TUT.length}</b></div><div class="card kpi"><span class="muted">รอตรวจสอบ</span><b class="num">${pendingT.length}</b></div><div class="card kpi"><span class="muted">Verified</span><b class="num">${okT.length}</b></div></div>
+<h2 style="font-size:20px;font-weight:600">รอตรวจสอบ</h2>${pendingT.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">${pendingT.map(card).join('')}</div>`:'<div class="empty">ไม่มีติวเตอร์รอตรวจสอบ</div>'}
+<h2 style="font-size:20px;font-weight:600">ยืนยันแล้ว</h2>${okT.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">${okT.map(card).join('')}</div>`:'<div class="empty">ยังไม่มี</div>'}
+</div></div>`;
+}
+
+/* ---------- PRIVACY ---------- */
+function viewPrivacy(){return `<div class="wrap" style="padding-block:40px 80px;max-width:760px;display:flex;flex-direction:column;gap:16px">
+<h1 style="font-weight:700;font-size:clamp(1.8rem,3vw,2.3rem)">นโยบายความเป็นส่วนตัว</h1>
+<p class="muted">ฉบับร่างเบื้องต้น ควรให้ผู้เชี่ยวชาญด้านกฎหมายตรวจสอบก่อนใช้งานจริง · ผู้ควบคุมข้อมูล: [ชื่อผู้ให้บริการ] · ติดต่อ: [อีเมลติดต่อ]</p>
+${[['ข้อมูลที่เก็บ','อีเมลและชื่อที่ใช้แสดงของผู้ใช้ทุกคน ข้อมูลโปรไฟล์ติวเตอร์ที่ติวเตอร์กรอกเอง (แสดงต่อสาธารณะ) ข้อมูลการจอง ข้อความระหว่างผู้ใช้ รีวิว และเอกสารยืนยันตัวตนของติวเตอร์ เช่น สำเนาบัตรประชาชนและวุฒิการศึกษา'],['วัตถุประสงค์','เพื่อให้บริการจับคู่และจองเรียนระหว่างผู้เรียนกับติวเตอร์ ตรวจสอบตัวตนติวเตอร์ ป้องกันการทุจริต และติดต่อผู้ใช้เกี่ยวกับบริการ'],['การเปิดเผยข้อมูล','โปรไฟล์ติวเตอร์และรีวิวแสดงต่อสาธารณะ ข้อมูลการจองและข้อความเห็นได้เฉพาะคู่สนทนา เอกสารยืนยันตัวตนเห็นได้เฉพาะเจ้าของและผู้ดูแลระบบ ข้อมูลจัดเก็บบนบริการคลาวด์ของผู้ให้บริการฐานข้อมูล (Supabase)'],['สิทธิของเจ้าของข้อมูล','ผู้ใช้มีสิทธิขอเข้าถึง แก้ไข ลบ หรือคัดค้านการประมวลผลข้อมูลส่วนบุคคลตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 โดยติดต่อที่ [อีเมลติดต่อ]'],['ระยะเวลาเก็บรักษา','เก็บไว้ตลอดระยะเวลาที่มีบัญชี และลบเมื่อผู้ใช้ขอลบบัญชี เว้นแต่กฎหมายกำหนดให้เก็บต่อ']].map(([h,p])=>`<section style="display:flex;flex-direction:column;gap:6px"><h2 style="font-size:19px;font-weight:600">${h}</h2><p style="color:var(--ink-2)">${p}</p></section>`).join('')}
+</div>`}
+
+/* ---------- SETUP / RENDER ---------- */
+function viewSetup(){return `<div class="wrap" style="padding-block:80px"><div class="card pad" style="max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px"><h1 style="font-size:24px;font-weight:700">ยังเชื่อมต่อฐานข้อมูลไม่ได้</h1><p class="muted">ไม่สามารถโหลดไลบรารี Supabase ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า</p></div></div>`}
+function render(){
+ const r=route();
+ if(!sb){$('#app').innerHTML=viewSetup();return}
+ let body='';
+ if(r==='home')body=viewHome();
+ else if(r==='search')body=viewSearch();
+ else if(/^t-[0-9a-f-]{36}$/.test(r))body=viewProfile(r.slice(2));
+ else if(r==='student')body=viewStudent();
+ else if(r==='tutor-dashboard')body=viewTutorDash();
+ else if(r==='join')body=viewJoin();
+ else if(r==='admin')body=viewAdmin();
+ else if(r==='privacy')body=viewPrivacy();
+ else body=viewHome();
+ $('#app').innerHTML=header()+`<main id="main">${body}</main>`+(['student','tutor-dashboard'].includes(r)?'':footer());
+ if(r==='search')renderResults();
+ tray();
+ if(scrollToBook){scrollToBook=false;const b=$('#book');if(b)setTimeout(()=>b.scrollIntoView({behavior:'smooth',block:'start'}),40)}
+}
+function rerenderKeep(){
+ /* อย่า render ทับขณะผู้ใช้กำลังพิมพ์ในฟอร์มยาว */
+ const a=document.activeElement;
+ const typing=a&&(a.tagName==='TEXTAREA'||(a.tagName==='INPUT'&&!['checkbox','radio','file','button','submit'].includes(a.type)))&&a.closest('form[data-form="join"],form[data-form="tutorEdit"]');
+ if(typing)return;
+ const y=window.scrollY;render();window.scrollTo(0,y);
+}
+
+/* ---------- actions ---------- */
+function toggleIn(arr,v){const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v)}
+async function submitBooking(btn){
+ const t=tutor(B.tutorId);const e=$('#bk-err');const fail=m=>{if(e){e.textContent=m;e.hidden=false}};
+ if(!uid()){openAuth('login',()=>submitBooking(),'parent');return}
+ if(!B.time)return fail('กรุณาเลือกเวลาเริ่มเรียน');
+ busy(btn,true,'กำลังส่งคำขอ…');
+ const {data,error}=await sb.from('bookings').insert({tutor_id:t.id,parent_id:uid(),parent_name:myName(),student:B.student.trim(),subject:B.subject,mode:B.mode,day:B.date,start_time:B.time,hours:B.hours,note:B.note.trim()}).select().single();
+ busy(btn,false);
+ if(error){fail(errMsg(error));invalidate('prof:'+t.id);return}
+ B.sent=data;invalidate('prof:'+t.id,'sbook');
+ renderBooking();toast('ส่งคำขอจองถึง '+nick(t)+' แล้ว');
+}
+const actions={
+navToggle(el){const n=$('#mainnav');const o=n.classList.toggle('open');el.setAttribute('aria-expanded',o)},
+scrollHome(el){const id=el.dataset.target;const doIt=()=>{const x=document.getElementById(id);if(x)x.scrollIntoView({behavior:'smooth'})};if(route()!=='home'){location.hash='home';setTimeout(doIt,80)}else doIt();const n=$('#mainnav');n&&n.classList.remove('open')},
+scrollTo(el){const x=document.getElementById(el.dataset.target);if(x)x.scrollIntoView({behavior:'smooth',block:'start'})},
+auth(el){openAuth(el.dataset.m)},
+authMode(el){const r=document.querySelector('[name=role]:checked');openAuth(el.dataset.m,pendingAfterAuth,r?r.value:undefined)},
+closeModal(){closeModal()},
+async logout(){await sb.auth.signOut();toast('ออกจากระบบแล้ว');go('home')},
+async refresh(){Object.keys(cache).forEach(k=>delete cache[k]);await loadTutors();if(uid()){const {data}=await sb.from('tutors').select('*').eq('id',uid()).maybeSingle();myTutor=data||myTutor}rerenderKeep();toast('อัปเดตข้อมูลล่าสุดแล้ว')},
+subject(el){Object.assign(F,{q:'',subjects:[el.dataset.s],level:'',province:'',mode:'all'});go('search')},
+toggleFilters(){$('#filters').classList.toggle('collapsed')},
+rmFilter(el){const k=el.dataset.k;if(k==='q')F.q='';if(k==='subject')toggleIn(F.subjects,el.dataset.v);if(k==='level')F.level='';if(k==='price'){F.min='';F.max=''}if(k==='province')F.province='';if(k==='mode')F.mode='all';if(k==='exp')F.exp=0;if(k==='rating')F.rating=0;if(k==='verified')F.verified=false;rerenderKeep()},
+clearFilters(){Object.assign(F,{q:'',subjects:[],level:'',min:'',max:'',province:'',mode:'all',exp:0,rating:0,verified:false});rerenderKeep()},
+save(el){const id=el.dataset.id;const was=L.saved.includes(id);toggleIn(L.saved,id);saveL();if(route()==='search')renderResults();else rerenderKeep();toast(was?'นำออกจากรายการที่บันทึกแล้ว':'บันทึกติวเตอร์แล้ว')},
+compare(el){const id=el.dataset.id;if(!L.compare.includes(id)&&L.compare.length>=3){toast('เปรียบเทียบได้สูงสุด 3 คน');if(el.type==='checkbox')el.checked=false;return}toggleIn(L.compare,id);saveL();if(route()==='search')tray();else rerenderKeep()},
+openCompare(){const list=L.compare.map(tutor).filter(Boolean);if(list.length<2)return;openModal(mhead('เปรียบเทียบติวเตอร์')+compareTable(list,false)+`<button class="btn btn-ghost" data-act="clearCompare" style="align-self:flex-start;color:var(--danger)">ล้างรายการเปรียบเทียบ</button>`,true)},
+clearCompare(){L.compare=[];saveL();closeModal(true);rerenderKeep()},
+bookFrom(el){scrollToBook=true;go('t-'+el.dataset.id)},
+week(el){B.weekOffset=Number(el.dataset.v);renderBooking()},
+submitBooking(el){submitBooking(el)},
+bookAgain(){B.sent=null;B.time='';renderBooking()},
+message(el){
+ const t=tutor(el.dataset.id);if(!t)return;
+ if(!uid()){openAuth('login',()=>actions.message(el),'parent');return}
+ if(uid()===t.id){toast('ส่งข้อความถึงตัวเองไม่ได้',true);return}
+ openModal(`${mhead('ส่งข้อความถึง '+esc(nick(t)))}<div style="display:flex;gap:12px;align-items:center">${av(t,44,18)}<b style="font-weight:600">${esc(t.name)}</b></div><form data-form="message" data-id="${t.id}" style="display:flex;flex-direction:column;gap:12px"><label class="field" for="msg-text">ข้อความ<textarea class="input" id="msg-text" name="text" rows="4" maxlength="2000">สวัสดีครับ/ค่ะ สนใจเรียน${esc((t.subjects||[''])[0])} ไม่ทราบว่ามีเวลาว่างช่วงไหนบ้าง</textarea></label><p id="msg-err" style="color:var(--danger);font-size:14px" hidden></p><button class="btn btn-primary" type="submit">ส่งข้อความ</button><span class="muted" style="font-size:13px">ติวเตอร์จะตอบกลับในเมนู “ข้อความ” ของแดชบอร์ดคุณ</span></form>`)},
+stuSec(el){studentSection=el.dataset.v;rerenderKeep()},
+stuTab(el){studentTab=el.dataset.v;rerenderKeep()},
+tutTab(el){tutorTab=el.dataset.v;rerenderKeep()},
+cancelArm(el){cancelArm=Number(el.dataset.id);rerenderKeep()},
+cancelNo(){cancelArm=null;rerenderKeep()},
+async setStatus(el){
+ const id=Number(el.dataset.id),v=el.dataset.v;busy(el,true,'…');
+ const {error}=await sb.from('bookings').update({status:v}).eq('id',id);
+ cancelArm=null;
+ if(error){busy(el,false);toast(errMsg(error),true);return}
+ invalidate('sbook','tbook','prof');rerenderKeep();
+ toast({confirmed:'ตอบรับคำขอแล้ว',declined:'ปฏิเสธคำขอแล้ว',cancelled:'ยกเลิกการจองแล้ว',done:'บันทึกว่าเรียนเสร็จแล้ว'}[v]||'อัปเดตแล้ว')},
+rateStar(el){const id=el.dataset.id;rateDraft[id]=Number(el.dataset.v);const ta=$('#rv-'+id);const txt=ta?ta.value:'';const y=window.scrollY;render();window.scrollTo(0,y);const n=$('#rv-'+id);if(n)n.value=txt},
+async submitReview(el){
+ const id=Number(el.dataset.id);const sc=rateDraft[id]||0;if(!sc){$('#rverr-'+id).hidden=false;return}
+ const b=(cache['sbook']||[]).find(x=>x.id===id);if(!b)return;
+ busy(el,true,'กำลังส่ง…');
+ const {error}=await sb.from('reviews').insert({booking_id:id,tutor_id:b.tutor_id,parent_id:uid(),author_name:myName(),subject:b.subject,score:sc,body:($('#rv-'+id).value||'').trim()});
+ if(error){busy(el,false);toast(errMsg(error),true);return}
+ delete rateDraft[id];invalidate('sbook','prof:'+b.tutor_id);await loadTutors();rerenderKeep();toast('ขอบคุณสำหรับรีวิว')},
+async rmStudent(el){const {error}=await sb.from('students').delete().eq('id',Number(el.dataset.id));if(error){toast(errMsg(error),true);return}invalidate('students');rerenderKeep()},
+async verify(el){const id=el.dataset.id,on=el.dataset.v==='1';busy(el,true,'…');const t=tutor(id);const docs=Object.assign({},t.docs||{});if(on)['id','edu','cert'].forEach(k=>docs[k]='ok');const {error}=await sb.from('tutors').update({verified:on,docs}).eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}await loadTutors();rerenderKeep();toast(on?'อนุมัติ Verified แล้ว':'ถอนเครื่องหมายแล้ว')},
+jAvail(el){const p=+el.dataset.p,d=+el.dataset.d;joinAvail[p][d]=joinAvail[p][d]?0:1;el.setAttribute('aria-pressed',!!joinAvail[p][d])}
+};
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-act]');
+ if(el&&el.type!=='checkbox'&&el.type!=='file'&&actions[el.dataset.act]){if(el.tagName==='A'&&el.dataset.act==='closeModal'){closeModal(true);return}if(el.tagName==='A')return;e.preventDefault();actions[el.dataset.act](el,e);return}
+ const fb=e.target.closest('button[data-f]');
+ if(fb){F[fb.dataset.f]=fb.dataset.v;fb.parentElement.querySelectorAll('button[data-f]').forEach(b=>b.setAttribute('aria-pressed',b===fb));renderResults();return}
+ const bb=e.target.closest('button[data-b]');
+ if(bb&&B){const k=bb.dataset.b,v=bb.dataset.v;if(k==='date'){B.date=v;B.time=''}else B[k]=v;renderBooking();return}
+});
+document.addEventListener('change',async e=>{
+ const el=e.target;
+ if(el.matches('input[type=checkbox][data-act="compare"]')){actions.compare(el);return}
+ if(el.matches('input[type=file][data-up]')){const k=el.dataset.up,f=el.files&&el.files[0];if(!f)return;toast('กำลังอัปโหลด…');try{await uploadDoc(k,f);await markDocs([k]);toast('อัปโหลดแล้ว รอแอดมินตรวจสอบ');rerenderKeep()}catch(err){toast(errMsg(err),true)}return}
+ if(el.dataset.f){const k=el.dataset.f;
+  if(k==='subject')toggleIn(F.subjects,el.value);
+  else if(k==='verified')F.verified=el.checked;
+  else if(k==='exp'||k==='rating')F[k]=Number(el.value);
+  else F[k]=el.value;
+  renderResults();return}
+ if(el.dataset.b&&B){const k=el.dataset.b;B[k]=k==='hours'?Number(el.value):el.value;if(k!=='note'&&k!=='student')renderBooking()}
+});
+document.addEventListener('input',e=>{
+ const el=e.target;
+ if(['q','min','max'].includes(el.dataset.f)){F[el.dataset.f]=el.value;renderResults()}
+ if((el.dataset.b==='note'||el.dataset.b==='student')&&B)B[el.dataset.b]=el.value;
+});
+document.addEventListener('submit',async e=>{
+ const f=e.target;const kind=f.dataset.form;if(!kind)return;e.preventDefault();
+ const fd=new FormData(f);const btn=f.querySelector('[type=submit]');
+ if(kind==='homeSearch'){const qv=(fd.get('q')||'').trim();Object.assign(F,{q:SUBJECTS.includes(qv)?'':qv,subjects:SUBJECTS.includes(qv)?[qv]:[],level:fd.get('level')||'',province:fd.get('province')||'',mode:fd.get('mode')||'all',min:'',max:'',exp:0,rating:0});go('search');return}
+ if(kind==='auth'){
+  const mode=f.dataset.mode,email=(fd.get('email')||'').trim(),pass=fd.get('pass')||'';const err=$('#au-err'),ok=$('#au-ok');err.hidden=true;ok.hidden=true;
+  if(!email||(mode!=='forgot'&&!pass)){err.textContent='กรุณากรอกอีเมลและรหัสผ่าน';err.hidden=false;return}
+  busy(btn,true);
+  let res;
+  if(mode==='forgot'){res=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});busy(btn,false);if(res.error){err.textContent=errMsg(res.error);err.hidden=false}else{ok.textContent='ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว';ok.hidden=false}return}
+  if(mode==='signup'){const role=fd.get('role')||'parent';res=await sb.auth.signUp({email,password:pass,options:{data:{role,display_name:(fd.get('name')||'').trim()},emailRedirectTo:location.origin+location.pathname}});
+   busy(btn,false);if(res.error){err.textContent=errMsg(res.error);err.hidden=false;return}
+   if(!res.data.session){ok.textContent='สมัครเรียบร้อย กรุณากดลิงก์ยืนยันในอีเมล แล้วกลับมาเข้าสู่ระบบ';ok.hidden=false;return}
+   closeModal(true);toast('สร้างบัญชีเรียบร้อย');if(role==='tutor'){go('join');return}
+  }else{res=await sb.auth.signInWithPassword({email,password:pass});busy(btn,false);if(res.error){err.textContent=errMsg(res.error);err.hidden=false;return}closeModal(true);toast('เข้าสู่ระบบแล้ว')}
+  session=res.data.session;await loadMe();
+  const after=pendingAfterAuth;pendingAfterAuth=null;render();if(after)after();return}
+ if(kind==='newpass'){const p=fd.get('pass')||'';if(p.length<6){$('#np-err').textContent='รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';$('#np-err').hidden=false;return}busy(btn,true);const {error}=await sb.auth.updateUser({password:p});busy(btn,false);if(error){$('#np-err').textContent=errMsg(error);$('#np-err').hidden=false;return}closeModal(true);toast('ตั้งรหัสผ่านใหม่แล้ว');return}
+ if(kind==='message'){const text=(fd.get('text')||'').trim();if(!text)return;busy(btn,true,'กำลังส่ง…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.id,parent_id:uid(),sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){const m=$('#msg-err');m.textContent=errMsg(error);m.hidden=false;return}closeModal();invalidate('smsg');toast('ส่งข้อความแล้ว');if(route()==='student')rerenderKeep();return}
+ if(kind==='reply'){const text=(fd.get('body')||'').trim();if(!text)return;busy(btn,true,'…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.tutor,parent_id:f.dataset.parent,sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('smsg','tmsg');rerenderKeep();return}
+ if(kind==='student'){const name=(fd.get('name')||'').trim();if(!name){$('#st-name').focus();return}busy(btn,true);const {error}=await sb.from('students').insert({parent_id:uid(),name,level:fd.get('level'),goal:(fd.get('goal')||'').trim()});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('students');rerenderKeep();toast('เพิ่มโปรไฟล์ '+name+' แล้ว');return}
+ if(kind==='tutorEdit'){const r=readTutorForm(fd);const errs=validateTutor(r);showErrs(errs);if(errs.length)return;busy(btn,true,'กำลังบันทึก…');const {data,error}=await sb.from('tutors').update(r).eq('id',uid()).select().single();busy(btn,false);if(error){showErrs([errMsg(error)]);return}myTutor=data;B=null;await loadTutors();toast('บันทึกโปรไฟล์แล้ว');tutorTab='overview';rerenderKeep();return}
+ if(kind==='join'){
+  const r=readTutorForm(fd);const errs=validateTutor(r);
+  if(!uid()){const em=(fd.get('email')||'').trim(),pw=fd.get('pass')||'';if(!em)errs.unshift('กรอกอีเมล');if(pw.length<6)errs.unshift('ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร')}
+  if(!fd.get('agree'))errs.push('ยืนยันความถูกต้องของข้อมูลและยอมรับนโยบายความเป็นส่วนตัว');
+  showErrs(errs);if(errs.length)return;
+  busy(btn,true,'กำลังสร้างโปรไฟล์…');
+  try{
+   if(!uid()){
+    const em=(fd.get('email')||'').trim();
+    const res=await sb.auth.signUp({email:em,password:fd.get('pass'),options:{data:{role:'tutor',display_name:r.nick||r.name},emailRedirectTo:location.origin+location.pathname+'#tutor-dashboard'}});
+    if(res.error)throw res.error;
+    if(!res.data.session){
+     try{localStorage.setItem(DRAFT,JSON.stringify({email:em,row:Object.assign({},r,{hue:Math.floor(Math.random()*360)})}))}catch(x){}
+     busy(btn,false);const ok=$('#j-ok');ok.innerHTML='<b>เกือบเสร็จแล้ว</b><br>เราส่งลิงก์ยืนยันไปที่ <b>'+esc(em)+'</b> กดลิงก์ในอีเมล แล้วเข้าสู่ระบบด้วยเบราว์เซอร์นี้ ระบบจะสร้างโปรไฟล์จากข้อมูลที่กรอกให้อัตโนมัติ (เอกสารยืนยันตัวตนอัปโหลดได้ในแดชบอร์ดภายหลัง)';ok.hidden=false;ok.scrollIntoView({behavior:'smooth',block:'center'});return}
+    session=res.data.session;
+   }
+   if(me&&me.role!=='tutor')await sb.from('profiles').update({role:'tutor'}).eq('id',uid());
+   const {data,error}=await sb.from('tutors').insert(tutorRow(r)).select().single();
+   if(error)throw error;myTutor=data;
+   const kinds=[];for(const k of ['id','edu','cert']){const file=fd.get('doc-'+k);if(file&&file.name){try{if(await uploadDoc(k,file))kinds.push(k)}catch(x){toast('อัปโหลด '+k+' ไม่สำเร็จ: '+errMsg(x),true)}}}
+   await markDocs(kinds);
+   await loadMe();await loadTutors();busy(btn,false);tutorTab='overview';toast('สร้างโปรไฟล์ติวเตอร์เรียบร้อย');go('tutor-dashboard');
+  }catch(err){busy(btn,false);showErrs([errMsg(err)])}
+  return}
+});
+
+/* ---------- boot ---------- */
+async function boot(){
+ if(!sb){render();return}
+ render();
+ const {data}=await sb.auth.getSession();session=data.session;
+ await Promise.all([loadMe(),loadTutors()]);
+ render();
+ sb.auth.onAuthStateChange((ev,s)=>{
+  setTimeout(async()=>{
+   if(ev==='PASSWORD_RECOVERY'){session=s;openModal(`${mhead('ตั้งรหัสผ่านใหม่')}<form data-form="newpass" style="display:flex;flex-direction:column;gap:12px"><label class="field" for="np">รหัสผ่านใหม่<input class="input" id="np" name="pass" type="password" autocomplete="new-password"></label><p id="np-err" style="color:var(--danger);font-size:14px" hidden></p><button class="btn btn-primary" type="submit">บันทึกรหัสผ่าน</button></form>`);return}
+   if(ev==='SIGNED_IN'||ev==='SIGNED_OUT'){const changed=(s&&s.user&&s.user.id)!==uid();session=s;if(changed||ev==='SIGNED_OUT'){Object.keys(cache).forEach(k=>delete cache[k]);B=null;await loadMe();render()}}
+   else if(ev==='TOKEN_REFRESHED'||ev==='USER_UPDATED'){session=s}
+  },0);
+ });
+}
+boot();
+})();
+
+</script>
+</body>
+</html>
