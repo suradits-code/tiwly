@@ -276,7 +276,10 @@ const endTime=(t,h)=>{const [hh,mm]=t.split(':').map(Number);const m=hh*60+mm+Ma
 const modeLabel=m=>m==='online'?'ออนไลน์':'ตัวต่อตัว';
 const modesText=ms=>(ms||[]).length===2?'ออนไลน์ / ตัวต่อตัว':((ms||[])[0]==='online'?'ออนไลน์':'ตัวต่อตัว (On-site)');
 const initial=n=>esc(String(n||'?').trim().charAt(0)||'?');
-const av=(t,size=56,fs=22,radius)=>`<span class="av" aria-hidden="true" style="--h:${Number(t&&t.hue)||224};width:${size}px;height:${size}px;font-size:${fs}px;${radius?`border-radius:${radius}px;`:''}">${initial(t&&t.name)}</span>`;
+const PHOTO_PREFIX=SUPABASE_URL+'/storage/v1/object/public/tutor-photos/';
+const av=(t,size=56,fs=22,radius)=>(t&&t.photo_url&&String(t.photo_url).startsWith(PHOTO_PREFIX))
+ ?`<img class="av" src="${esc(t.photo_url)}" alt="" loading="lazy" style="width:${size}px;height:${size}px;object-fit:cover;${radius?`border-radius:${radius}px;`:''}">`
+ :`<span class="av" aria-hidden="true" style="--h:${Number(t&&t.hue)||224};width:${size}px;height:${size}px;font-size:${fs}px;${radius?`border-radius:${radius}px;`:''}">${initial(t&&t.name)}</span>`;
 const rating=t=>Number(t.rating_avg)||0;
 const nick=t=>t.nick||t.name;
 function errMsg(e){const m=(e&&(e.message||e.error_description))||String(e||'');
@@ -787,6 +790,7 @@ function viewTutorDash(){
 <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(nick(t))}</h1><span class="muted">${!bk?'กำลังโหลดข้อมูล…':pending.length?`มีคำขอจองใหม่ ${pending.length} รายการรอการตอบรับ`:'ไม่มีคำขอจองค้างอยู่'}</span></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์สาธารณะ</a><button class="btn btn-primary" data-act="tutTab" data-v="profile">แก้ไขโปรไฟล์</button></div></div>
 ${bk&&bk.error?errBox(bk.error):''}
 ${!t.verified?`<section class="card pad" style="border-color:var(--warn);background:var(--warn-bg);display:flex;flex-direction:column;gap:6px"><b style="font-weight:600;color:var(--warn)">โปรไฟล์ของคุณแสดงในผลค้นหาแล้ว แต่ยังไม่มีเครื่องหมาย Verified</b><p style="color:var(--ink-2);font-size:14px">อัปโหลดบัตรประชาชน วุฒิการศึกษา และใบรับรองด้านล่าง ทีมงานจะตรวจสอบแล้วให้เครื่องหมาย Verified Tutor</p></section>`:''}
+${tutorTab==='overview'&&!t.photo_url?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:var(--line-2);background:var(--bg-soft)"><div style="display:flex;gap:14px;align-items:center;flex:1 1 300px">${av(t,52,22)}<div><b style="font-weight:600">เพิ่มรูปโปรไฟล์ของคุณ</b><p class="muted" style="font-size:14px">ให้ผู้ปกครองเห็นหน้าคุณก่อนตัดสินใจจองเรียน</p></div></div><button class="btn btn-primary" data-act="tutTab" data-v="profile">เพิ่มรูปโปรไฟล์</button></section>`:''}
 ${tutorTab==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px">
 <div class="card kpi"><span class="muted" style="font-size:14px">รายได้ที่ยืนยันแล้วเดือนนี้</span><b class="num">${baht(vals[5])}</b><span class="muted" style="font-size:13px">จากคาบที่ตอบรับแล้ว</span></div>
 <div class="card kpi"><span class="muted" style="font-size:14px">ชั่วโมงสอนเดือนนี้</span><b class="num">${hrs} ชม.</b><span class="muted" style="font-size:13px">คาบที่ยืนยัน ${sched.length} คาบ</span></div>
@@ -810,6 +814,13 @@ function availEditor(grid,act){return `<div class="tbl-wrap"><div class="avail a
 function tutorFields(t,isJoin){
  const has=(arr,v)=>(arr||[]).includes(v);
  return `<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">${isJoin?'2. ':''}ข้อมูลส่วนตัว</h2>
+<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center">
+<span id="photo-prev" style="display:inline-flex">${av(t.name?t:{name:'?',hue:224},96,38,24)}</span>
+<div style="display:flex;flex-direction:column;gap:8px;flex:1 1 240px">
+<span class="field">รูปโปรไฟล์</span>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label class="btn btn-outline btn-sm" style="cursor:pointer">${t.photo_url?'เปลี่ยนรูป':'เลือกรูป'}<input type="file" class="sr" id="j-photo" name="photo" accept="image/jpeg,image/png,image/webp"></label>${t.photo_url?`<label class="check" style="font-size:14px"><input type="checkbox" name="removePhoto">ลบรูปปัจจุบัน</label>`:''}</div>
+<span class="muted" style="font-size:13px;font-weight:400">ใช้รูปหน้าตรงที่เห็นใบหน้าชัดเจน ไฟล์ JPG, PNG หรือ WebP ระบบจะครอปเป็นสี่เหลี่ยมจัตุรัสให้อัตโนมัติ</span>
+</div></div>
 <div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">
 <label class="field" for="j-name">ชื่อ–นามสกุล *<input class="input" id="j-name" name="name" autocomplete="name" value="${esc(t.name||'')}" maxlength="120"></label>
 <label class="field" for="j-nick">ชื่อที่ให้นักเรียนเรียก<input class="input" id="j-nick" name="nick" placeholder="เช่น ครูบีม" value="${esc(t.nick||'')}" maxlength="40"></label></div>
@@ -876,6 +887,24 @@ async function uploadDoc(kind,file){
  const {error}=await sb.storage.from('tutor-docs').upload(path,file,{contentType:file.type||undefined});
  if(error)throw error;
  return true;
+}
+/* ย่อและครอปรูปเป็น 512x512 JPEG ก่อนอัปโหลด */
+function squareJpeg(file){
+ return new Promise((resolve,reject)=>{
+  if(!/^image\//.test(file.type||''))return reject(new Error('กรุณาเลือกไฟล์รูปภาพ'));
+  if(file.size>15*1024*1024)return reject(new Error('รูปใหญ่เกิน 15 MB'));
+  const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=()=>{const s=Math.min(img.naturalWidth,img.naturalHeight);const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,512,512);ctx.drawImage(img,(img.naturalWidth-s)/2,(img.naturalHeight-s)/2,s,s,0,0,512,512);URL.revokeObjectURL(url);c.toBlob(b=>b?resolve(b):reject(new Error('แปลงรูปไม่สำเร็จ')),'image/jpeg',0.86)};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('เปิดไฟล์รูปนี้ไม่ได้ ลองใช้ไฟล์ JPG หรือ PNG'))};
+  img.src=url;
+ });
+}
+async function uploadPhoto(file){
+ const blob=await squareJpeg(file);
+ const path=`${uid()}/avatar-${Date.now()}.jpg`;
+ const {error}=await sb.storage.from('tutor-photos').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
+ if(error)throw error;
+ return sb.storage.from('tutor-photos').getPublicUrl(path).data.publicUrl;
 }
 async function markDocs(kinds){
  if(!kinds.length)return;
@@ -1010,6 +1039,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',async e=>{
  const el=e.target;
  if(el.matches('input[type=checkbox][data-act="compare"]')){actions.compare(el);return}
+ if(el.matches('input[type=file][name=photo]')){const f=el.files&&el.files[0];const p=$('#photo-prev');if(f&&p){if(!/^image\//.test(f.type||'')){toast('กรุณาเลือกไฟล์รูปภาพ',true);el.value='';return}const u=URL.createObjectURL(f);p.innerHTML=`<img class="av" src="${u}" alt="ตัวอย่างรูปโปรไฟล์" style="width:96px;height:96px;object-fit:cover;border-radius:24px">`}return}
  if(el.matches('input[type=file][data-up]')){const k=el.dataset.up,f=el.files&&el.files[0];if(!f)return;toast('กำลังอัปโหลด…');try{await uploadDoc(k,f);await markDocs([k]);toast('อัปโหลดแล้ว รอแอดมินตรวจสอบ');rerenderKeep()}catch(err){toast(errMsg(err),true)}return}
  if(el.dataset.f){const k=el.dataset.f;
   if(k==='subject')toggleIn(F.subjects,el.value);
@@ -1045,7 +1075,9 @@ document.addEventListener('submit',async e=>{
  if(kind==='message'){const text=(fd.get('text')||'').trim();if(!text)return;busy(btn,true,'กำลังส่ง…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.id,parent_id:uid(),sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){const m=$('#msg-err');m.textContent=errMsg(error);m.hidden=false;return}closeModal();invalidate('smsg');toast('ส่งข้อความแล้ว');if(route()==='student')rerenderKeep();return}
  if(kind==='reply'){const text=(fd.get('body')||'').trim();if(!text)return;busy(btn,true,'…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.tutor,parent_id:f.dataset.parent,sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('smsg','tmsg');rerenderKeep();return}
  if(kind==='student'){const name=(fd.get('name')||'').trim();if(!name){$('#st-name').focus();return}busy(btn,true);const {error}=await sb.from('students').insert({parent_id:uid(),name,level:fd.get('level'),goal:(fd.get('goal')||'').trim()});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('students');rerenderKeep();toast('เพิ่มโปรไฟล์ '+name+' แล้ว');return}
- if(kind==='tutorEdit'){const r=readTutorForm(fd);const errs=validateTutor(r);showErrs(errs);if(errs.length)return;busy(btn,true,'กำลังบันทึก…');const {data,error}=await sb.from('tutors').update(r).eq('id',uid()).select().single();busy(btn,false);if(error){showErrs([errMsg(error)]);return}myTutor=data;B=null;await loadTutors();toast('บันทึกโปรไฟล์แล้ว');tutorTab='overview';rerenderKeep();return}
+ if(kind==='tutorEdit'){const r=readTutorForm(fd);const errs=validateTutor(r);showErrs(errs);if(errs.length)return;busy(btn,true,'กำลังบันทึก…');
+  const ph=fd.get('photo');if(ph&&ph.name){try{r.photo_url=await uploadPhoto(ph)}catch(x){busy(btn,false);showErrs(['อัปโหลดรูปไม่สำเร็จ: '+errMsg(x)]);return}}else if(fd.get('removePhoto'))r.photo_url='';
+  const {data,error}=await sb.from('tutors').update(r).eq('id',uid()).select().single();busy(btn,false);if(error){showErrs([errMsg(error)]);return}myTutor=data;B=null;await loadTutors();toast('บันทึกโปรไฟล์แล้ว');tutorTab='overview';rerenderKeep();return}
  if(kind==='join'){
   const r=readTutorForm(fd);const errs=validateTutor(r);
   if(!uid()){const em=(fd.get('email')||'').trim(),pw=fd.get('pass')||'';if(!em)errs.unshift('กรอกอีเมล');if(pw.length<6)errs.unshift('ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร')}
@@ -1065,6 +1097,7 @@ document.addEventListener('submit',async e=>{
    if(me&&me.role!=='tutor')await sb.from('profiles').update({role:'tutor'}).eq('id',uid());
    const {data,error}=await sb.from('tutors').insert(tutorRow(r)).select().single();
    if(error)throw error;myTutor=data;
+   const ph=fd.get('photo');if(ph&&ph.name){try{const url=await uploadPhoto(ph);const u=await sb.from('tutors').update({photo_url:url}).eq('id',uid()).select().single();if(!u.error)myTutor=u.data}catch(x){toast('อัปโหลดรูปโปรไฟล์ไม่สำเร็จ: '+errMsg(x)+' (เพิ่มภายหลังได้ในแดชบอร์ด)',true)}}
    const kinds=[];for(const k of ['id','edu','cert']){const file=fd.get('doc-'+k);if(file&&file.name){try{if(await uploadDoc(k,file))kinds.push(k)}catch(x){toast('อัปโหลด '+k+' ไม่สำเร็จ: '+errMsg(x),true)}}}
    await markDocs(kinds);
    await loadMe();await loadTutors();busy(btn,false);tutorTab='overview';toast('สร้างโปรไฟล์ติวเตอร์เรียบร้อย');go('tutor-dashboard');
