@@ -597,7 +597,7 @@ function ensureB(t,taken){
 function bookingCard(t){
  const P=cache['prof:'+t.id];const taken=P&&P.taken||[];
  ensureB(t,taken);
- if(B.sent){const b=B.sent;return `<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start"><span style="display:flex;width:52px;height:52px;border-radius:16px;background:var(--ok-bg);color:var(--ok);align-items:center;justify-content:center">${I.check(26)}</span><h2 style="font-size:22px;font-weight:700">ส่งคำขอจองแล้ว</h2><p class="muted">${esc(nick(t))} จะเห็นคำขอในแดชบอร์ดและยืนยันเวลากลับมา ติดตามสถานะได้ในแดชบอร์ดของคุณ</p><div class="card" style="padding:14px 16px;width:100%;font-size:15px;display:flex;flex-direction:column;gap:2px"><b style="font-weight:600">${esc(b.subject)} · ${modeLabel(b.mode)}</b><span class="muted">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)}${b.student?' · '+esc(b.student):''}</span><span class="num" style="font-weight:600">${b.is_trial?'ทดลองเรียนฟรี (โค้ด '+esc(b.promo_code)+')':baht(b.student_price)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;width:100%"><a class="btn btn-primary" href="#student" style="flex:1">ไปที่แดชบอร์ด</a><button class="btn btn-outline" data-act="bookAgain" style="flex:1">จองเวลาอื่น</button></div></div>`}
+ if(B.sent){const b=B.sent;return `<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start"><span style="display:flex;width:52px;height:52px;border-radius:16px;background:var(--ok-bg);color:var(--ok);align-items:center;justify-content:center">${I.check(26)}</span><h2 style="font-size:22px;font-weight:700">ส่งคำขอจองแล้ว</h2><p class="muted">${esc(nick(t))} จะยืนยันเวลากลับมา ${B.trial?'คาบทดลองนี้ไม่ต้องชำระเงิน':'เมื่อยืนยันแล้ว ให้ชำระค่าเรียนผ่าน PromptPay ในแดชบอร์ดของคุณ'}</p><div class="card" style="padding:14px 16px;width:100%;font-size:15px;display:flex;flex-direction:column;gap:2px"><b style="font-weight:600">${esc(b.subject)} · ${modeLabel(b.mode)}</b><span class="muted">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)}${b.student?' · '+esc(b.student):''}</span><span class="num" style="font-weight:600">${b.is_trial?'ทดลองเรียนฟรี (โค้ด '+esc(b.promo_code)+')':baht(b.student_price)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;width:100%"><a class="btn btn-primary" href="#student" style="flex:1">ไปที่แดชบอร์ด</a><button class="btn btn-outline" data-act="bookAgain" style="flex:1">จองเวลาอื่น</button></div></div>`}
  if(!t.verified&&uid()!==t.id)return `<p class="muted">ติวเตอร์ท่านนี้ยังไม่เปิดรับจอง</p>`;
  if(uid()===t.id)return `<div style="display:flex;flex-direction:column;gap:12px"><b style="font-family:var(--f-display);font-size:20px">นี่คือโปรไฟล์ของคุณ</b><p class="muted">ผู้ปกครองจะเห็นกล่องจองเรียนตรงนี้</p><a class="btn btn-primary" href="#tutor-dashboard">ไปที่แดชบอร์ดติวเตอร์</a></div>`;
  const rate=B.mode==='online'?t.price:t.price_onsite;
@@ -621,7 +621,7 @@ ${t.accept_trial===false?`<p class="muted" style="font-size:13px">ติวเ�
 <p id="bk-err" style="color:var(--danger);font-size:14px" hidden></p>
 <button class="btn btn-primary btn-lg" data-act="submitBooking">จองเรียนกับติวเตอร์คนนี้</button>
 <button class="btn btn-outline" data-act="message" data-id="${t.id}">${I.chat()} ส่งข้อความสอบถาม</button>
-<span class="muted" style="font-size:13px;text-align:center">ส่งคำขอจองได้ฟรี ค่าเรียนตกลงและชำระกับติวเตอร์โดยตรง</span>`;
+<span class="muted" style="font-size:13px;text-align:center">ส่งคำขอได้ฟรี เมื่อติวเตอร์ยืนยันเวลาแล้ว จึงชำระค่าเรียนผ่าน Tiwly ด้วย PromptPay เงินจะโอนให้ติวเตอร์หลังเรียนเสร็จ</span>`;
 }
 function renderBooking(){const t=tutor(B&&B.tutorId);const el=$('#book');if(t&&el)el.innerHTML=bookingCard(t)}
 function viewProfile(id){
@@ -743,6 +743,29 @@ function galleryManager(t){
 <section class="card pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center"><h2 style="font-size:20px;font-weight:600">รูปของคุณ</h2><a class="btn btn-outline btn-sm" href="#t-${t.id}">ดูตัวอย่างหน้าโปรไฟล์</a></div>
 ${all.length?`<div style="columns:3 220px;column-gap:14px">${all.map(g=>`<div style="break-inside:avoid;margin-bottom:14px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)"><img src="${esc(g.url)}" alt="${esc(g.caption||'')}" loading="lazy" style="display:block;width:100%;height:auto"><div style="padding:10px;display:flex;flex-direction:column;gap:8px"><label class="sr" for="gk-${g.id}">หมวดหมู่</label><select class="input" id="gk-${g.id}" style="min-height:38px;padding:6px 10px">${Object.entries(CATS).map(([k,l])=>`<option value="${k}" ${g.category===k?'selected':''}>${l}</option>`).join('')}</select><label class="sr" for="gc-${g.id}">คำบรรยาย</label><input class="input" id="gc-${g.id}" value="${esc(g.caption)}" maxlength="200" placeholder="คำบรรยาย" style="min-height:38px;padding:6px 10px"><div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" style="flex:1" data-act="galSave" data-id="${g.id}">บันทึก</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-act="galDel" data-id="${g.id}">ลบ</button></div></div></div>`).join('')}</div>`:`<div class="empty">ยังไม่มีรูป</div>`}</section>`;
 }
+/* ---------- การชำระเงินผ่านแพลตฟอร์ม (แบบ B) ---------- */
+const PAY={unpaid:['รอชำระเงิน','b-warn'],submitted:['รอแอดมินตรวจสลิป','b-info'],paid:['ชำระแล้ว','b-ok'],not_required:['ทดลองฟรี ไม่ต้องชำระ','b-ok'],direct:['จ่ายตรงกับติวเตอร์','b-neutral'],refund_pending:['รอคืนเงิน','b-warn'],refunded:['คืนเงินแล้ว','b-neutral']};
+const payBadge=s=>`<span class="badge ${(PAY[s]||['',''])[1]}">${(PAY[s]||[s||'-'])[0]}</span>`;
+const payOK=s=>['paid','not_required','direct'].includes(s);
+function payModal(b){
+ const st=settingsMap()||{};const t=tutor(b.tutor_id)||{name:'ติวเตอร์'};
+ const ppId=st.promptpay_id||'',ppName=st.promptpay_name||'';
+ const svg=ppId?qrSvg(ppPayload(ppId,b.student_price)):'';
+ openModal(`${mhead('ชำระค่าเรียน')}
+<div style="display:flex;flex-direction:column;gap:2px;font-size:15px"><b style="font-weight:600">${esc(b.subject)} กับ ${esc(t.name)}</b><span class="muted">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)}${b.student?' · '+esc(b.student):''}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
+${svg?`<div style="flex:0 1 220px;background:#fff;border-radius:16px;padding:10px;border:1px solid var(--line)" role="img" aria-label="QR PromptPay ยอด ${baht(b.student_price)}">${svg.replace('<svg ','<svg style="width:100%;height:auto;display:block" ')}</div>`:''}
+<div style="flex:1 1 220px;display:flex;flex-direction:column;gap:8px"><span class="muted">ยอดชำระ</span><b class="num" style="font-family:var(--f-display);font-size:36px;line-height:1.1">${baht(b.student_price)}</b>
+${ppId?`<span style="font-size:14px">PromptPay: <span class="num">${esc(ppId)}</span>${ppName?'<br>ชื่อบัญชี: '+esc(ppName):''}</span>`:`<span style="color:var(--warn);font-size:14px">ระบบยังไม่ได้ตั้งค่าบัญชีรับเงิน กรุณาติดต่อทีมงาน</span>`}</div></div>
+<ol style="margin:0;padding-left:20px;font-size:14px;color:var(--ink-2)"><li>สแกน QR ด้วยแอปธนาคาร ยอดจะขึ้นให้อัตโนมัติ</li><li>บันทึกภาพสลิป แล้วกดปุ่มแนบสลิปด้านล่าง</li><li>แอดมินตรวจสอบ แล้วสถานะจะเปลี่ยนเป็น “ชำระแล้ว”</li></ol>
+<p class="muted" style="font-size:13px">Tiwly ถือเงินค่าเรียนไว้ และโอนให้ติวเตอร์หลังเรียนเสร็จ หากคาบเรียนถูกยกเลิก ทีมงานจะติดต่อคืนเงินตามอีเมลที่สมัครไว้</p>
+<label class="btn btn-primary btn-lg" style="cursor:pointer">แนบสลิปการโอน<input type="file" class="sr" data-payslip="${b.id}" accept="image/*,.pdf"></label>`);
+}
+function earningsTable(mine,commList){
+ const done=mine.filter(b=>['done','reviewed'].includes(b.status)&&b.pay_status==='paid').sort((a,b)=>String(b.day).localeCompare(String(a.day)));
+ if(!done.length)return `<div class="empty">ยังไม่มีรายได้ผ่านแพลตฟอร์ม รายได้จะขึ้นเมื่อผู้ปกครองชำระเงินแล้วและสอนเสร็จ</div>`;
+ return `<div class="tbl-wrap"><table class="tbl" style="min-width:640px"><thead><tr><th>วันที่สอน</th><th>ผู้เรียน / วิชา</th><th>ค่าเรียน</th><th>หักค่าธรรมเนียม</th><th>สุทธิ</th></tr></thead><tbody>${done.map(b=>{const fee=commList.filter(c=>c.booking_id===b.id&&c.status==='deducted').reduce((s,c)=>s+Number(c.amount),0);return `<tr><td class="num">${fmtDate(b.day)}</td><td>${esc(b.student||b.parent_name)}<br><span class="muted" style="font-size:13px">${esc(b.subject)}</span></td><td class="num">${baht(b.student_price)}</td><td class="num">${fee?'−'+baht(fee)+' <span class="muted" style="font-size:12px">(คาบแรก)</span>':'-'}</td><td class="num" style="font-weight:600">${baht(Number(b.student_price)-fee)}</td></tr>`}).join('')}</tbody></table></div>`;
+}
 /* ---------- AUTH GATE ---------- */
 function loginGate(kind){
  const isT=kind==='tutor';
@@ -784,6 +807,8 @@ function viewStudent(){
  const upcoming=mine.filter(b=>['confirmed','pending'].includes(b.status)&&b.day>=today).sort((a,b)=>(a.day+a.start_time).localeCompare(b.day+b.start_time));
  const next=upcoming.find(b=>b.status==='confirmed');
  const toRate=mine.filter(b=>b.status==='done');
+ const toPay=mine.filter(b=>b.status==='confirmed'&&b.pay_status==='unpaid');
+ if(uid())settingsMap();
  let list=mine.slice();
  if(studentTab==='upcoming')list=upcoming;
  if(studentTab==='past')list=list.filter(b=>['done','reviewed','cancelled','declined'].includes(b.status));
@@ -800,10 +825,10 @@ function viewStudent(){
 <p id="rverr-${b.id}" style="color:var(--danger);font-size:14px" hidden>เลือกจำนวนดาวก่อนส่งรีวิว</p>
 <button class="btn btn-primary" style="align-self:flex-start" data-act="submitReview" data-id="${b.id}">ส่งรีวิว</button></section>`}).join('');
  const rows=list.map(b=>{const t=tn(b.tutor_id);let act='';
-  if(b.status==='pending'||b.status==='confirmed'){act=cancelArm===b.id?`<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span style="font-size:13px" class="muted">ยืนยันยกเลิก?</span><button class="btn btn-sm" style="background:var(--danger);color:#fff" data-act="setStatus" data-id="${b.id}" data-v="cancelled">ยกเลิกการจอง</button><button class="btn btn-ghost btn-sm" data-act="cancelNo">ไม่ใช่</button></span>`:`<span style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${b.status==='confirmed'&&b.day<=today?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">เรียนเสร็จแล้ว</button>`:''}<button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-act="cancelArm" data-id="${b.id}">ยกเลิก</button></span>`}
+  if(b.status==='pending'||b.status==='confirmed'){act=cancelArm===b.id?`<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end"><span style="font-size:13px" class="muted">ยืนยันยกเลิก?${['paid','submitted'].includes(b.pay_status)?' (ทีมงานจะติดต่อคืนเงิน)':''}</span><button class="btn btn-sm" style="background:var(--danger);color:#fff" data-act="setStatus" data-id="${b.id}" data-v="cancelled">ยกเลิกการจอง</button><button class="btn btn-ghost btn-sm" data-act="cancelNo">ไม่ใช่</button></span>`:`<span style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${b.status==='confirmed'&&b.pay_status==='unpaid'?`<button class="btn btn-primary btn-sm" data-act="payNow" data-id="${b.id}">ชำระเงิน</button>`:''}${b.status==='confirmed'&&b.day<=today&&payOK(b.pay_status)?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">เรียนเสร็จแล้ว</button>`:''}<button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-act="cancelArm" data-id="${b.id}">ยกเลิก</button></span>`}
   else if(b.status==='done')act=`<button class="btn btn-primary btn-sm" data-act="stuSec" data-v="overview">ให้คะแนน</button>`;
   else act=`<a class="btn btn-outline btn-sm" href="#t-${b.tutor_id}">จองอีกครั้ง</a>`;
-  return `<tr><td class="num" style="white-space:nowrap">${fmtDate(b.day)}<br><span class="muted" style="font-size:13px">${b.start_time}–${endTime(b.start_time,b.hours)}</span></td><td><a href="#t-${b.tutor_id}" style="display:flex;align-items:center;gap:10px;color:var(--ink)">${av(t,32,14)}<span>${esc(t.name)}</span></a></td><td>${esc(b.subject)}${b.student?`<br><span class="muted" style="font-size:13px">${esc(b.student)}</span>`:''}</td><td class="muted">${modeLabel(b.mode)}</td><td class="num">${b.is_trial?'<span class="badge b-ok">ทดลองฟรี</span>':baht(b.student_price||b.rate*b.hours)}</td><td>${stBadge(b.status)}</td><td style="text-align:right">${act}</td></tr>`}).join('');
+  return `<tr><td class="num" style="white-space:nowrap">${fmtDate(b.day)}<br><span class="muted" style="font-size:13px">${b.start_time}–${endTime(b.start_time,b.hours)}</span></td><td><a href="#t-${b.tutor_id}" style="display:flex;align-items:center;gap:10px;color:var(--ink)">${av(t,32,14)}<span>${esc(t.name)}</span></a></td><td>${esc(b.subject)}${b.student?`<br><span class="muted" style="font-size:13px">${esc(b.student)}</span>`:''}</td><td class="muted">${modeLabel(b.mode)}</td><td class="num">${b.is_trial?'<span class="badge b-ok">ทดลองฟรี</span>':baht(b.student_price||b.rate*b.hours)}</td><td>${stBadge(b.status)}</td><td>${b.status==='pending'?'<span class="muted" style="font-size:13px">ชำระหลังติวเตอร์ยืนยัน</span>':payBadge(b.pay_status)}${b.pay_note?`<br><span style="font-size:12px;color:var(--danger)">${esc(b.pay_note)}</span>`:''}</td><td style="text-align:right">${act}</td></tr>`}).join('');
  const cmpT=L.compare.map(tutor).filter(Boolean);
  const show=k=>studentSection==='overview'||studentSection===k;
  return `<div class="dash">
@@ -812,10 +837,11 @@ function viewStudent(){
 <main class="dash-main">
 <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(myName())}</h1><span class="muted">${bk?`มีคาบที่กำลังจะมาถึง ${upcoming.length} คาบ${toRate.length?` · รอให้คะแนน ${toRate.length} คาบ`:''}`:'กำลังโหลดข้อมูล…'}</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-primary" href="#search">${I.search} ค้นหาติวเตอร์</a></div></div>
 ${bk&&bk.error?errBox(bk.error):''}
+${toPay.length&&['overview','bookings'].includes(studentSection)?`<section class="card pad" style="border-color:var(--warn);background:var(--warn-bg);display:flex;flex-direction:column;gap:10px"><b style="font-weight:600;color:var(--warn);font-size:17px">มีคาบเรียนที่ติวเตอร์ยืนยันแล้ว รอคุณชำระค่าเรียน ${toPay.length} รายการ</b><p style="font-size:14px;color:var(--ink-2)">กรุณาชำระก่อนวันเรียน เพื่อยืนยันที่นั่ง</p>${toPay.map(b=>{const t=tn(b.tutor_id);return `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px"><span style="line-height:1.4"><b style="font-weight:600">${esc(b.subject)} กับ ${esc(t.name)}</b><br><span class="muted" style="font-size:14px">${fmtDate(b.day)} · ${b.start_time} · ${baht(b.student_price)}</span></span><button class="btn btn-primary btn-sm" data-act="payNow" data-id="${b.id}">ชำระเงิน</button></div>`}).join('')}</section>`:''}
 ${studentSection==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))">${nextCard}${rateCards}</div>`:''}
 ${studentSection==='bookings'&&rateCards?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))">${rateCards}</div>`:''}
 ${show('bookings')?`<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px"><h2 style="font-size:20px;font-weight:600">การจองของฉัน</h2><div class="seg" role="group" aria-label="กรองสถานะ">${[['all','ทั้งหมด'],['upcoming','กำลังจะมาถึง'],['past','ที่ผ่านมา']].map(([k,l])=>`<button data-act="stuTab" data-v="${k}" aria-pressed="${studentTab===k}">${l}</button>`).join('')}</div></div>
-${!bk?loadingBox():list.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:860px"><thead><tr><th>วันเวลา</th><th>ติวเตอร์</th><th>วิชา / ผู้เรียน</th><th>รูปแบบ</th><th>ค่าเรียน</th><th>สถานะ</th><th style="text-align:right">การจัดการ</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">ยังไม่มีการจองในหมวดนี้</div>`}</section>`:''}
+${!bk?loadingBox():list.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:980px"><thead><tr><th>วันเวลา</th><th>ติวเตอร์</th><th>วิชา / ผู้เรียน</th><th>รูปแบบ</th><th>ค่าเรียน</th><th>สถานะ</th><th>การชำระเงิน</th><th style="text-align:right">การจัดการ</th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">ยังไม่มีการจองในหมวดนี้</div>`}</section>`:''}
 ${show('messages')?`<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ข้อความกับติวเตอร์</h2>${threadsView(msgs,'parent')}</section>`:''}
 ${show('saved')?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">
 <section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="font-size:20px;font-weight:600">ติวเตอร์ที่บันทึกไว้</h2><a href="#search" style="font-size:14px;font-weight:600">ค้นหาเพิ่ม</a></div>
@@ -863,7 +889,9 @@ function viewTutorDash(){
  const commList=Array.isArray(comm)?comm:[];
  const dueList=commList.filter(c=>c.status==='due');
  const dueTotal=dueList.reduce((s,c)=>s+Number(c.amount),0);
- const overdue=dueList.some(c=>c.due_date<today);
+ const bal=need('tbal',async()=>{const {data,error}=await sb.rpc('tutor_balance',{p_tutor:uid()});if(error)throw error;return Number(data)});
+ const balN=typeof bal==='number'?bal:0;const owed=balN<0?-balN:0;
+ const overdue=owed>0&&dueList.some(c=>c.due_date<today);
  const isFirst=b=>!mine.some(x=>x.parent_id===b.parent_id&&x.id!==b.id&&['done','reviewed'].includes(x.status))&&!commList.some(c=>c.parent_id===b.parent_id);
  const now=new Date();
  const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return {key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:MONTHS[d.getMonth()]}});
@@ -873,7 +901,7 @@ function viewTutorDash(){
  const docs=t.docs||{};
  const docList=[['id','บัตรประชาชน'],['edu','ประวัติการศึกษา / ใบปริญญา'],['cert','ใบรับรองหรือเอกสารเพิ่มเติม']];
  const dl={ok:['ยืนยันแล้ว','b-ok'],review:['รอแอดมินตรวจสอบ','b-info'],none:['ยังไม่อัปโหลด','b-warn']};
- const tabs=[['overview','ภาพรวม'],['gallery','ผลงาน / รูปภาพ'],['requests','คำขอจอง'],['schedule','ตารางสอน'],['messages','ข้อความ'],['fees','ค่าธรรมเนียม'],['profile','แก้ไขโปรไฟล์']];
+ const tabs=[['overview','ภาพรวม'],['gallery','ผลงาน / รูปภาพ'],['requests','คำขอจอง'],['schedule','ตารางสอน'],['messages','ข้อความ'],['fees','การเงิน'],['profile','แก้ไขโปรไฟล์']];
  const show=k=>tutorTab==='overview'||tutorTab===k;
  const reqRows=pending.map(b=>`<article style="border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center"><span class="av" style="width:44px;height:44px;font-size:17px;background:var(--surface-2);color:var(--ink-2)">${initial(b.parent_name)}</span><div style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;line-height:1.45"><b style="font-weight:600">${esc(b.parent_name||'ผู้ปกครอง')}${b.student?` · ผู้เรียน: ${esc(b.student)}`:''}</b><span style="font-size:14px;color:var(--ink-2)">${esc(b.subject)} · ${modeLabel(b.mode)}</span><span class="muted num" style="font-size:14px">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)} · ${b.is_trial?'นักเรียนเรียนฟรี':'ค่าเรียน '+baht(b.student_price)}</span><span style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">${b.is_trial?`<span class="badge b-ok">ทดลองเรียนฟรี · โค้ด ${esc(b.promo_code)}</span>`:''}${isFirst(b)?`<span class="badge b-warn">ผู้เรียนใหม่ · ค่าธรรมเนียมแพลตฟอร์ม ${baht(b.list_price)} เมื่อสอนคาบนี้เสร็จ</span>`:''}</span>${b.note?`<span style="font-size:14px;color:var(--ink-2)">“${esc(b.note)}”</span>`:''}</div><div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="declined">ปฏิเสธ</button><button class="btn btn-primary btn-sm" data-act="setStatus" data-id="${b.id}" data-v="confirmed">ตอบรับ</button></div></article>`).join('');
  return `<div class="dash">
@@ -883,16 +911,16 @@ function viewTutorDash(){
 <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(nick(t))}</h1><span class="muted">${!bk?'กำลังโหลดข้อมูล…':pending.length?`มีคำขอจองใหม่ ${pending.length} รายการรอการตอบรับ`:'ไม่มีคำขอจองค้างอยู่'}</span></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์สาธารณะ</a><button class="btn btn-primary" data-act="tutTab" data-v="profile">แก้ไขโปรไฟล์</button></div></div>
 ${bk&&bk.error?errBox(bk.error):''}
 ${approvalBanner(t)}
-${dueList.length&&tutorTab!=='fees'?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:${overdue?'var(--danger)':'var(--warn)'};background:var(--warn-bg)"><div style="flex:1 1 300px"><b style="font-weight:600;color:${overdue?'var(--danger)':'var(--warn)'}">ค่าธรรมเนียมแพลตฟอร์มรอชำระ ${baht(dueTotal)}</b><p style="font-size:14px;color:var(--ink-2)">${overdue?'เกินกำหนดชำระแล้ว คุณจะกดตอบรับคำขอใหม่ไม่ได้จนกว่าจะชำระ':'ชำระผ่าน PromptPay แล้วแนบสลิปในเมนูค่าธรรมเนียม'}</p></div><button class="btn btn-primary" data-act="tutTab" data-v="fees">ชำระค่าธรรมเนียม</button></section>`:''}
+${owed>0&&dueList.length&&tutorTab!=='fees'?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:${overdue?'var(--danger)':'var(--warn)'};background:var(--warn-bg)"><div style="flex:1 1 300px"><b style="font-weight:600;color:${overdue?'var(--danger)':'var(--warn)'}">ค่าธรรมเนียมแพลตฟอร์มค้างชำระ ${baht(owed)}</b><p style="font-size:14px;color:var(--ink-2)">${overdue?'เกินกำหนดชำระแล้ว คุณจะกดตอบรับคำขอใหม่ไม่ได้จนกว่าจะชำระ':'ชำระผ่าน PromptPay แล้วแนบสลิปในเมนูการเงิน หรือรอหักจากค่าเรียนครั้งถัดไป'}</p></div><button class="btn btn-primary" data-act="tutTab" data-v="fees">ชำระค่าธรรมเนียม</button></section>`:''}
 ${tutorTab==='overview'&&!t.photo_url?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:var(--line-2);background:var(--bg-soft)"><div style="display:flex;gap:14px;align-items:center;flex:1 1 300px">${av(t,52,22)}<div><b style="font-weight:600">เพิ่มรูปโปรไฟล์ของคุณ</b><p class="muted" style="font-size:14px">ให้ผู้ปกครองเห็นหน้าคุณก่อนตัดสินใจจองเรียน</p></div></div><button class="btn btn-primary" data-act="tutTab" data-v="profile">เพิ่มรูปโปรไฟล์</button></section>`:''}
 ${tutorTab==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px">
-<div class="card kpi"><span class="muted" style="font-size:14px">รายได้ที่ยืนยันแล้วเดือนนี้</span><b class="num">${baht(vals[5])}</b><span class="muted" style="font-size:13px">จากคาบที่ตอบรับแล้ว</span></div>
+<div class="card kpi"><span class="muted" style="font-size:14px">ค่าเรียนที่ยืนยันแล้วเดือนนี้</span><b class="num">${baht(vals[5])}</b><span class="muted" style="font-size:13px">จากคาบที่ตอบรับแล้ว</span></div>
 <div class="card kpi"><span class="muted" style="font-size:14px">ชั่วโมงสอนเดือนนี้</span><b class="num">${hrs} ชม.</b><span class="muted" style="font-size:13px">คาบที่ยืนยัน ${sched.length} คาบ</span></div>
 <div class="card kpi"><span class="muted" style="font-size:14px">คำขอจองรอตอบ</span><b class="num">${pending.length}</b><span class="muted" style="font-size:13px">ควรตอบภายใน 24 ชม.</span></div>
 <div class="card kpi"><span class="muted" style="font-size:14px">คะแนนรีวิว</span><b class="num">${t.rating_count?rating(t).toFixed(1):'–'}</b><span class="muted" style="font-size:13px">${t.rating_count} รีวิว</span></div></div>`:''}
 <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
 ${show('requests')?`<section class="card pad" style="flex:3 1 460px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">คำขอจองเรียน</h2>${!bk?loadingBox():reqRows||`<div class="empty">ไม่มีคำขอใหม่ เมื่อผู้ปกครองส่งคำขอ จะแสดงที่นี่</div>`}</section>`:''}
-${show('schedule')?`<section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ตารางสอนที่ยืนยันแล้ว</h2>${!bk?loadingBox():sched.length?`<ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">${sched.map((b,i)=>{const d=parseISO(b.day);return `<li style="display:flex;gap:14px"><span style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;border-radius:12px;padding:8px 0;line-height:1.2;flex-shrink:0;background:${i===0?'var(--primary)':'var(--tint)'};color:${i===0?'var(--primary-ink)':'var(--tint-ink)'}"><span style="font-size:12px">${DOW[dowIdx(d)]}</span><b style="font-size:18px">${d.getDate()}</b></span><span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px"><span style="display:flex;flex-direction:column;line-height:1.4"><b style="font-weight:600">${esc(b.student||b.parent_name)} · ${esc(b.subject)}</b><span class="muted" style="font-size:14px">${b.start_time}–${endTime(b.start_time,b.hours)} · ${modeLabel(b.mode)}</span></span>${b.day<=today?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">สอนเสร็จแล้ว</button>`:''}</span></li>`}).join('')}</ol>`:`<div class="empty">ยังไม่มีคาบที่ยืนยัน</div>`}</section>`:''}
+${show('schedule')?`<section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ตารางสอนที่ยืนยันแล้ว</h2>${!bk?loadingBox():sched.length?`<ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">${sched.map((b,i)=>{const d=parseISO(b.day);return `<li style="display:flex;gap:14px"><span style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;border-radius:12px;padding:8px 0;line-height:1.2;flex-shrink:0;background:${i===0?'var(--primary)':'var(--tint)'};color:${i===0?'var(--primary-ink)':'var(--tint-ink)'}"><span style="font-size:12px">${DOW[dowIdx(d)]}</span><b style="font-size:18px">${d.getDate()}</b></span><span style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px"><span style="display:flex;flex-direction:column;line-height:1.4"><b style="font-weight:600">${esc(b.student||b.parent_name)} · ${esc(b.subject)}</b><span class="muted" style="font-size:14px">${b.start_time}–${endTime(b.start_time,b.hours)} · ${modeLabel(b.mode)}</span></span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${payBadge(b.pay_status)}${b.day<=today&&payOK(b.pay_status)?`<button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="done">สอนเสร็จแล้ว</button>`:''}</span></span></li>`}).join('')}</ol>`:`<div class="empty">ยังไม่มีคาบที่ยืนยัน</div>`}</section>`:''}
 </div>
 ${show('messages')?`<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ข้อความจากผู้ปกครอง</h2>${threadsView(msgs,'tutor')}</section>`:''}
 ${tutorTab==='overview'?`<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
@@ -902,7 +930,7 @@ ${tutorTab==='overview'?`<div style="display:flex;flex-wrap:wrap;gap:20px;align-
 <section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">เอกสารยืนยันตัวตน</h2><p class="muted" style="font-size:13px">ไฟล์เปิดดูได้เฉพาะคุณและแอดมิน (รูปภาพหรือ PDF ไม่เกิน 10 MB)</p>
 <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">${docList.map(([k,l])=>`<li style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap"><span>${l}</span><span style="display:flex;gap:8px;align-items:center"><span class="badge ${dl[docs[k]||'none'][1]}">${dl[docs[k]||'none'][0]}</span>${docs[k]!=='ok'?`<label class="btn btn-outline btn-sm" style="cursor:pointer">${docs[k]==='review'?'ส่งใหม่':'อัปโหลด'}<input type="file" class="sr" data-up="${k}" accept="image/*,.pdf"></label>`:''}</span></li>`).join('')}</ul></section></div>`:''}
 ${tutorTab==='gallery'?galleryManager(t):''}
-${tutorTab==='fees'?feesView(comm,dueList,dueTotal,overdue):''}
+${tutorTab==='fees'?feesView(comm,dueList,owed,overdue,bal,mine):''}
 ${tutorTab==='profile'?profileEditor(t):''}
 </main></div>`;
 }
@@ -919,27 +947,35 @@ function qrSvg(text){try{if(!window.qrcode||!text)return '';const q=window.qrcod
 function settingsMap(){return need('settings',async()=>{const d=await q(sb.from('settings').select('*'));const o={};(d||[]).forEach(r=>{o[r.key]=r.value});return o})}
 const FEE_ST={due:['รอชำระ','b-warn'],submitted:['ส่งสลิปแล้ว รอตรวจสอบ','b-info'],paid:['ชำระแล้ว','b-ok'],waived:['ยกเว้น','b-neutral']};
 const feeBadge=s=>`<span class="badge ${(FEE_ST[s]||['',''])[1]}">${(FEE_ST[s]||[s])[0]}</span>`;
-function feeRules(days){return `ค่าธรรมเนียมแพลตฟอร์มเก็บครั้งเดียวต่อผู้เรียนใหม่ 1 ราย (1 บัญชีผู้ปกครอง) เท่ากับค่าเรียนเต็มของคาบแรกที่สอนเสร็จ หากคาบแรกเป็นคาบทดลองเรียนฟรีจากโค้ด ผู้เรียนไม่เสียค่าเรียน แต่ค่าธรรมเนียมคิดตามราคาปกติของคาบนั้น ชำระภายใน ${days||7} วันหลังสอนเสร็จ หากค้างเกินกำหนดจะกดตอบรับคำขอใหม่ไม่ได้จนกว่าจะชำระ`}
-function feesView(comm,dueList,dueTotal,overdue){
+function feeRules(days){return `ผู้ปกครองชำระค่าเรียนผ่าน Tiwly เมื่อสอนเสร็จ ค่าเรียนจะเข้ายอดคงเหลือของคุณ และแอดมินโอนให้ตามบัญชีรับเงินที่ระบุ · ค่าธรรมเนียมแพลตฟอร์มเก็บครั้งเดียวต่อผู้เรียนใหม่ 1 ราย เท่ากับค่าเรียนเต็มของคาบแรกที่สอนเสร็จ (หักจากค่าเรียนคาบนั้นอัตโนมัติ) · หากคาบแรกเป็นคาบทดลองเรียนฟรี ค่าธรรมเนียมคิดตามราคาปกติ และหักจากค่าเรียนครั้งถัดไปหรือชำระเองภายใน ${days||7} วัน`}
+function feesView(comm,dueList,owed,overdue,bal,mine){
  if(!comm)return loadingBox();
  if(comm.error)return errBox(comm.error);
  const st=settingsMap()||{};
+ const pinfo=need('tpinfo',async()=>{const {data,error}=await sb.from('tutor_payout_info').select('*').eq('tutor_id',uid()).maybeSingle();if(error)throw error;return data||{}});
+ const pays=need('tpay',()=>q(sb.from('payouts').select('*').eq('tutor_id',uid()).order('created_at',{ascending:false})));
  const ppId=st.promptpay_id||'',ppName=st.promptpay_name||'';
- const svg=ppId?qrSvg(ppPayload(ppId,dueTotal)):'';
- return `<section class="card pad" style="display:flex;flex-direction:column;gap:8px"><h2 style="font-size:20px;font-weight:600">ค่าธรรมเนียมแพลตฟอร์ม</h2><p class="muted" style="font-size:14px;max-width:72ch">${feeRules(st.fee_due_days)}</p></section>
-${dueList.length?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;border-color:${overdue?'var(--danger)':'var(--line-2)'}">
-<div style="flex:1 1 280px;display:flex;flex-direction:column;gap:10px">
-<span class="muted">ยอดที่ต้องชำระ (${dueList.length} รายการ)</span><b class="num" style="font-family:var(--f-display);font-size:40px;line-height:1.1">${baht(dueTotal)}</b>
-${overdue?`<span class="badge" style="background:var(--danger);color:#fff;align-self:flex-start">เกินกำหนดชำระ</span>`:`<span class="muted" style="font-size:14px">ครบกำหนดเร็วที่สุด ${fmtDate(dueList.map(c=>c.due_date).sort()[0])}</span>`}
-${ppId?`<div style="font-size:15px;line-height:1.6"><b style="font-weight:600">โอนผ่าน PromptPay</b><br>หมายเลข: <span class="num">${esc(ppId)}</span>${ppName?`<br>ชื่อบัญชี: ${esc(ppName)}`:''}</div>`:`<p style="color:var(--warn);font-size:14px">แอดมินยังไม่ได้ตั้งค่าบัญชี PromptPay กรุณาติดต่อทีมงาน</p>`}
-<ol style="margin:0;padding-left:20px;font-size:14px;color:var(--ink-2)"><li>สแกน QR ด้วยแอปธนาคาร ยอดจะขึ้นให้อัตโนมัติ</li><li>บันทึกภาพสลิป</li><li>กดปุ่มแนบสลิปด้านล่าง</li></ol>
-<label class="btn btn-primary" style="cursor:pointer;align-self:flex-start">แนบสลิปการโอน<input type="file" class="sr" data-slip="1" accept="image/*,.pdf"></label>
-</div>
-${svg?`<div style="flex:0 1 240px;background:#fff;border-radius:16px;padding:12px;border:1px solid var(--line)" role="img" aria-label="QR PromptPay ยอด ${baht(dueTotal)}">${svg.replace('<svg ','<svg style="width:100%;height:auto;display:block" ')}</div>`:''}
-</section>`:`<div class="empty card">${I.check(20,'var(--ok)')}<b style="color:var(--ink)">ไม่มีค่าธรรมเนียมค้างชำระ</b></div>`}
-<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ประวัติค่าธรรมเนียม</h2>
-${comm.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:720px"><thead><tr><th>ผู้เรียน</th><th>วันที่สอนคาบแรก</th><th>ประเภท</th><th>ยอด</th><th>ครบกำหนด</th><th>สถานะ</th></tr></thead><tbody>${comm.map(c=>`<tr><td>${esc(c.student_label||'-')}</td><td class="num">${c.lesson_day?fmtDate(c.lesson_day):'-'}</td><td>${c.is_trial?'<span class="badge b-ok">ทดลองเรียนฟรี</span>':'คาบปกติ'}</td><td class="num">${baht(c.amount)}</td><td class="num">${fmtDate(c.due_date)}</td><td>${feeBadge(c.status)}${c.admin_note?`<br><span class="muted" style="font-size:12px">${esc(c.admin_note)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ยังไม่มีค่าธรรมเนียม จะเกิดขึ้นเมื่อสอนคาบแรกกับผู้เรียนใหม่เสร็จ</div>`}
-</section>`;
+ const svg=ppId&&owed>0?qrSvg(ppPayload(ppId,owed)):'';
+ const pi=pinfo&&!pinfo.error?pinfo:{};
+ return `<section class="card pad" style="display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px;flex:1 1 280px"><span class="muted">${owed>0?'ค่าธรรมเนียมค้างชำระ':'ยอดรอโอนให้คุณ'}</span><b class="num" style="font-family:var(--f-display);font-size:40px;line-height:1.1;color:${owed>0?'var(--danger)':'var(--ink)'}">${typeof bal==='number'?baht(Math.abs(bal)):'…'}</b><span class="muted" style="font-size:13px">${bal&&bal.error?esc(bal.error):'แอดมินโอนยอดคงเหลือให้ตามรอบ ไปยังบัญชีรับเงินด้านล่าง'}</span></div>
+<p class="muted" style="font-size:13px;flex:2 1 360px;max-width:72ch">${feeRules(st.fee_due_days)}</p></section>
+${owed>0?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:24px;align-items:center;border-color:${overdue?'var(--danger)':'var(--line-2)'}">
+<div style="flex:1 1 280px;display:flex;flex-direction:column;gap:10px"><b style="font-weight:600">ชำระค่าธรรมเนียมที่ค้าง ${baht(owed)}</b>${overdue?`<span class="badge" style="background:var(--danger);color:#fff;align-self:flex-start">เกินกำหนดชำระ · ตอบรับคำขอใหม่ไม่ได้</span>`:''}
+${ppId?`<span style="font-size:14px">PromptPay: <span class="num">${esc(ppId)}</span>${ppName?' · '+esc(ppName):''}</span>`:`<span style="color:var(--warn);font-size:14px">แอดมินยังไม่ได้ตั้งค่าบัญชี PromptPay</span>`}
+<label class="btn btn-primary" style="cursor:pointer;align-self:flex-start">แนบสลิปการโอน<input type="file" class="sr" data-slip="1" accept="image/*,.pdf"></label></div>
+${svg?`<div style="flex:0 1 220px;background:#fff;border-radius:16px;padding:10px;border:1px solid var(--line)" role="img" aria-label="QR PromptPay ยอด ${baht(owed)}">${svg.replace('<svg ','<svg style="width:100%;height:auto;display:block" ')}</div>`:''}</section>`:''}
+<form class="card pad" data-form="payoutInfo" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">บัญชีรับเงิน</h2><p class="muted" style="font-size:13px">เห็นได้เฉพาะคุณและแอดมิน ใช้สำหรับโอนค่าเรียนให้คุณ</p>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:12px">
+<label class="field" for="pi-m">ช่องทาง<select class="input" id="pi-m" name="method"><option value="promptpay" ${pi.method!=='bank'?'selected':''}>PromptPay</option><option value="bank" ${pi.method==='bank'?'selected':''}>บัญชีธนาคาร</option></select></label>
+<label class="field" for="pi-no">เลข PromptPay / เลขบัญชี<input class="input num" id="pi-no" name="account_no" value="${esc(pi.account_no||'')}" inputmode="numeric"></label>
+<label class="field" for="pi-name">ชื่อบัญชี<input class="input" id="pi-name" name="account_name" value="${esc(pi.account_name||'')}"></label>
+<label class="field" for="pi-bank">ธนาคาร (กรณีบัญชีธนาคาร)<input class="input" id="pi-bank" name="bank_name" value="${esc(pi.bank_name||'')}" placeholder="เช่น กสิกรไทย"></label></div>
+<button class="btn btn-primary" type="submit" style="align-self:flex-start">บันทึกบัญชีรับเงิน</button></form>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">รายได้จากคาบที่สอนเสร็จ</h2>${earningsTable(mine,comm)}</section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ประวัติการโอนเงินให้คุณ</h2>${!pays?loadingBox():pays.error?errBox(pays.error):pays.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:420px"><thead><tr><th>วันที่</th><th>ยอด</th><th>หมายเหตุ</th></tr></thead><tbody>${pays.map(x=>`<tr><td class="num">${fmtDT(x.created_at)}</td><td class="num" style="font-weight:600">${baht(x.amount)}</td><td>${esc(x.note)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ยังไม่มีการโอน</div>`}</section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">ค่าธรรมเนียมผู้เรียนใหม่</h2>
+${comm.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:720px"><thead><tr><th>ผู้เรียน</th><th>วันที่สอนคาบแรก</th><th>ประเภท</th><th>ยอด</th><th>สถานะ</th></tr></thead><tbody>${comm.map(c=>`<tr><td>${esc(c.student_label||'-')}</td><td class="num">${c.lesson_day?fmtDate(c.lesson_day):'-'}</td><td>${c.is_trial?'<span class="badge b-ok">ทดลองเรียนฟรี</span>':'คาบปกติ'}</td><td class="num">${baht(c.amount)}</td><td>${c.status==='deducted'?'<span class="badge b-ok">หักจากค่าเรียนแล้ว</span>':c.status==='due'&&owed===0?'<span class="badge b-ok">หักจากยอดคงเหลือ</span>':feeBadge(c.status)}${c.admin_note?`<br><span class="muted" style="font-size:12px">${esc(c.admin_note)}</span>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ยังไม่มีค่าธรรมเนียม</div>`}</section>`;
 }
 function availEditor(grid,act){return `<div class="tbl-wrap"><div class="avail avail-edit" style="min-width:480px"><span></span>${DOW.map(d=>`<span style="text-align:center;font-weight:600;color:var(--ink-2)">${d}</span>`).join('')}${PERIODS.map((p,pi)=>`<span style="display:flex;flex-direction:column;justify-content:center;line-height:1.3"><b style="font-weight:500">${p.label}</b><span class="muted" style="font-size:12px">${p.time}</span></span>${DOW.map((d,di)=>`<button type="button" data-act="${act}" data-p="${pi}" data-d="${di}" aria-pressed="${!!(grid[pi]&&grid[pi][di])}" aria-label="${d} ${p.label}"></button>`).join('')}`).join('')}</div></div><span class="muted" style="font-size:13px">แตะช่องเพื่อสลับ ว่าง / ไม่ว่าง</span>`}
 function tutorFields(t,isJoin){
@@ -1053,7 +1089,7 @@ async function markDocs(kinds){
 /* ---------- ADMIN ---------- */
 function viewAdmin(){
  if(!isAdmin)return `<div class="wrap" style="padding-block:80px"><div class="empty card"><b style="font-size:18px;color:var(--ink)">หน้านี้สำหรับแอดมินเท่านั้น</b></div></div>`;
- const tabs=[['tutors','ตรวจสอบติวเตอร์'],['fees','ค่าธรรมเนียม'],['codes','โค้ดทดลองเรียน'],['settings','ตั้งค่า PromptPay']];
+ const tabs=[['tutors','ตรวจสอบติวเตอร์'],['payments','รับชำระค่าเรียน'],['payouts','โอนเงินให้ติวเตอร์'],['fees','ค่าธรรมเนียม'],['codes','โค้ดทดลองเรียน'],['settings','ตั้งค่า PromptPay']];
  let body='';
  if(adminTab==='tutors'){
   const stOf=t=>t.review_status||(t.verified?'approved':'pending');
@@ -1082,6 +1118,32 @@ ${sec('pending','รออนุมัติ','ไม่มีใบสมัค
    const slip=x=>{if(!x.slip_path)return '<span class="muted">-</span>';const u=need('slip:'+x.slip_path,async()=>{const r=await sb.storage.from('payment-slips').createSignedUrl(x.slip_path,600);if(r.error)throw r.error;return r.data.signedUrl});return !u?'…':u.error?`<span style="color:var(--danger)">${esc(u.error)}</span>`:`<a href="${esc(u)}" target="_blank" rel="noopener">ดูสลิป</a>`};
    body=`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px"><div class="card kpi"><span class="muted">รอตรวจสลิป</span><b class="num">${baht(sum('submitted'))}</b></div><div class="card kpi"><span class="muted">ค้างชำระ</span><b class="num">${baht(sum('due'))}</b></div><div class="card kpi"><span class="muted">รับแล้วทั้งหมด</span><b class="num">${baht(sum('paid'))}</b></div></div>
 <section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">รายการค่าธรรมเนียม</h2>${rows.length?`<div class="tbl-wrap"><table class="tbl" style="min-width:900px"><thead><tr><th>ติวเตอร์</th><th>ผู้เรียน</th><th>ประเภท</th><th>ยอด</th><th>ครบกำหนด</th><th>สลิป</th><th>สถานะ</th><th style="text-align:right">จัดการ</th></tr></thead><tbody>${rows.map(x=>{const t=tutor(x.tutor_id)||{name:'(ลบแล้ว)'};return `<tr><td><a href="#t-${x.tutor_id}" style="color:var(--ink)">${esc(t.name)}</a></td><td>${esc(x.student_label)}</td><td>${x.is_trial?'<span class="badge b-ok">ทดลองฟรี</span>':'ปกติ'}</td><td class="num">${baht(x.amount)}</td><td class="num" style="${x.status==='due'&&x.due_date<todayISO()?'color:var(--danger);font-weight:600':''}">${fmtDate(x.due_date)}</td><td>${slip(x)}</td><td>${feeBadge(x.status)}</td><td style="text-align:right"><span style="display:inline-flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${x.status!=='paid'?`<button class="btn btn-primary btn-sm" data-act="commSet" data-id="${x.id}" data-v="paid">ยืนยันรับเงิน</button>`:''}${x.status==='submitted'?`<button class="btn btn-outline btn-sm" data-act="commSet" data-id="${x.id}" data-v="due">ตีกลับ (สลิปไม่ถูกต้อง)</button>`:''}${x.status==='due'?`<button class="btn btn-ghost btn-sm" data-act="commSet" data-id="${x.id}" data-v="waived">ยกเว้น</button>`:''}</span></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">ยังไม่มีค่าธรรมเนียม</div>'}</section>`;
+  }
+ }
+ if(adminTab==='payments'){
+  const rows=need('apay',()=>q(sb.from('bookings').select('*').in('pay_status',['submitted','refund_pending']).order('pay_submitted_at',{ascending:true})));
+  const slipLink=path=>{if(!path)return '<span class="muted">-</span>';const u=need('pslip:'+path,async()=>{const r=await sb.storage.from('payment-slips').createSignedUrl(path,600);if(r.error)throw r.error;return r.data.signedUrl});return !u?'…':u.error?`<span style="color:var(--danger)">${esc(u.error)}</span>`:`<a href="${esc(u)}" target="_blank" rel="noopener">ดูสลิป</a>`};
+  const emailOf=id=>{const e=need('email:'+id,async()=>{const r=await sb.rpc('admin_user_email',{p_user:id});if(r.error)throw r.error;return r.data||''});return !e?'…':e.error?'':esc(e)};
+  if(!rows)body=loadingBox();else if(rows.error)body=errBox(rows.error);else{
+   const sub=rows.filter(b=>b.pay_status==='submitted'),ref=rows.filter(b=>b.pay_status==='refund_pending');
+   const line=(b,actions)=>{const t=tutor(b.tutor_id)||{name:'ติวเตอร์'};return `<article class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center"><div style="flex:1 1 280px;line-height:1.5"><b style="font-weight:600">${baht(b.student_price)}</b> · ${esc(b.subject)} กับ ${esc(t.name)}<br><span class="muted" style="font-size:14px">ผู้ปกครอง: ${esc(b.parent_name)}${b.student?' · ผู้เรียน: '+esc(b.student):''} · เรียน ${fmtDate(b.day)} ${b.start_time}</span><br><span style="font-size:14px">${slipLink(b.pay_slip_path)}${b.pay_submitted_at?' · ส่งเมื่อ '+fmtDT(b.pay_submitted_at):''}</span></div>${actions}</article>`};
+   body=`<h2 style="font-size:20px;font-weight:600">สลิปรอตรวจสอบ (${sub.length})</h2>
+${sub.length?sub.map(b=>line(b,`<div style="display:flex;flex-direction:column;gap:8px;flex:1 1 260px"><label class="sr" for="pn-${b.id}">เหตุผลกรณีตีกลับ</label><input class="input" id="pn-${b.id}" placeholder="เหตุผลกรณีตีกลับ เช่น ยอดไม่ตรง"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" data-act="payAdmin" data-id="${b.id}" data-v="paid">ยืนยันรับเงิน</button><button class="btn btn-outline btn-sm" data-act="payAdmin" data-id="${b.id}" data-v="unpaid">ตีกลับ</button></div></div>`)).join(''):'<div class="empty">ไม่มีสลิปรอตรวจ</div>'}
+<h2 style="font-size:20px;font-weight:600">รอคืนเงิน (${ref.length})</h2><p class="muted" style="font-size:14px">การจองที่ชำระแล้วแต่ถูกยกเลิก ติดต่อผู้ปกครองทางอีเมลเพื่อขอบัญชีรับเงินคืน โอนคืน แล้วกดบันทึก</p>
+${ref.length?ref.map(b=>line(b,`<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px">อีเมลผู้ปกครอง: <b>${emailOf(b.parent_id)}</b></span><button class="btn btn-primary btn-sm" data-act="payAdmin" data-id="${b.id}" data-v="refunded">บันทึกว่าคืนเงินแล้ว</button></div>`)).join(''):'<div class="empty">ไม่มีรายการรอคืนเงิน</div>'}`;
+  }
+ }
+ if(adminTab==='payouts'){
+  const rows=need('abal',()=>q(sb.rpc('admin_balances')));
+  if(!rows)body=loadingBox();else if(rows.error)body=errBox(rows.error);else{
+   const pos=rows.filter(r=>Number(r.balance)>0).sort((a,b)=>b.balance-a.balance),neg=rows.filter(r=>Number(r.balance)<0);
+   body=`<section class="card pad" style="display:flex;flex-direction:column;gap:6px"><h2 style="font-size:20px;font-weight:600">ยอดที่ต้องโอนให้ติวเตอร์ (${pos.length} คน · รวม ${baht(pos.reduce((s,r)=>s+Number(r.balance),0))})</h2><p class="muted" style="font-size:14px">ยอด = ค่าเรียนจากคาบที่สอนเสร็จและชำระผ่านแพลตฟอร์มแล้ว − ค่าธรรมเนียม − ยอดที่โอนไปแล้ว สแกน QR เพื่อโอน แล้วกดบันทึก</p></section>
+${pos.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))">${pos.map(r=>{const amt=Math.round(Number(r.balance)*100)/100;const svg=r.method==='promptpay'&&r.account_no?qrSvg(ppPayload(r.account_no,amt)):'';return `<article class="card pad" style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-weight:600">${esc(r.name)}</b><b class="num" style="font-family:var(--f-display);font-size:26px">${baht(amt)}</b></div>
+${r.account_no?`<span style="font-size:14px">${r.method==='bank'?'บัญชี '+esc(r.bank_name)+' ':'PromptPay '}<span class="num">${esc(r.account_no)}</span> · ${esc(r.account_name)}</span>`:`<span style="font-size:14px;color:var(--warn)">ติวเตอร์ยังไม่ได้กรอกบัญชีรับเงิน</span>`}
+${svg?`<div style="width:180px;background:#fff;border-radius:12px;padding:8px;border:1px solid var(--line)">${svg.replace('<svg ','<svg style="width:100%;height:auto;display:block" ')}</div>`:''}
+<label class="sr" for="po-${r.tutor_id}">หมายเหตุการโอน</label><input class="input" id="po-${r.tutor_id}" placeholder="หมายเหตุ เช่น เลขอ้างอิงการโอน">
+<button class="btn btn-primary" data-act="doPayout" data-id="${r.tutor_id}" data-amt="${amt}">บันทึกว่าโอน ${baht(amt)} แล้ว</button></article>`}).join('')}</div>`:'<div class="empty">ยังไม่มียอดที่ต้องโอน</div>'}
+${neg.length?`<section class="card pad" style="display:flex;flex-direction:column;gap:8px"><h2 style="font-size:20px;font-weight:600">ติวเตอร์ที่ค้างค่าธรรมเนียม</h2>${neg.map(r=>`<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:8px 0"><span>${esc(r.name)}</span><b class="num" style="color:var(--danger)">${baht(-r.balance)}</b></div>`).join('')}</section>`:''}`;
   }
  }
  if(adminTab==='codes'){
@@ -1196,7 +1258,7 @@ async setStatus(el){
  const {error}=await sb.from('bookings').update({status:v}).eq('id',id);
  cancelArm=null;
  if(error){busy(el,false);toast(errMsg(error),true);return}
- invalidate('sbook','tbook','prof','tcomm','acomm');rerenderKeep();
+ invalidate('sbook','tbook','prof','tcomm','acomm','tbal');rerenderKeep();
  toast({confirmed:'ตอบรับคำขอแล้ว',declined:'ปฏิเสธคำขอแล้ว',cancelled:'ยกเลิกการจองแล้ว',done:'บันทึกว่าเรียนเสร็จแล้ว'}[v]||'อัปเดตแล้ว')},
 rateStar(el){const id=el.dataset.id;rateDraft[id]=Number(el.dataset.v);const ta=$('#rv-'+id);const txt=ta?ta.value:'';const y=window.scrollY;render();window.scrollTo(0,y);const n=$('#rv-'+id);if(n)n.value=txt},
 async submitReview(el){
@@ -1224,6 +1286,9 @@ async applyPromo(){
  renderBooking()},
 rmPromo(){B.promo='';B.trial=false;B.promoInput='';B.promoMsg='';renderBooking()},
 adminTab(el){adminTab=el.dataset.v;rerenderKeep()},
+payNow(el){const b=(Array.isArray(cache['sbook'])?cache['sbook']:[]).find(x=>x.id===Number(el.dataset.id));if(!b)return;const st=settingsMap();if(!st){toast('กำลังโหลดข้อมูลการชำระเงิน ลองกดอีกครั้ง');return}payModal(b)},
+async payAdmin(el){const id=Number(el.dataset.id),v=el.dataset.v;const note=(($('#pn-'+id)||{}).value||'').trim();if(v==='unpaid'&&!note){toast('ระบุเหตุผลที่ตีกลับสลิป',true);return}busy(el,true,'…');const patch={pay_status:v,pay_note:v==='unpaid'?note:''};if(v==='paid')patch.paid_at=new Date().toISOString();if(v==='unpaid')patch.pay_slip_path=null;const {error}=await sb.from('bookings').update(patch).eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}invalidate('apay','abal');rerenderKeep();toast({paid:'ยืนยันรับเงินแล้ว',unpaid:'ตีกลับให้ผู้ปกครองส่งสลิปใหม่แล้ว',refunded:'บันทึกว่าคืนเงินแล้ว'}[v])},
+async doPayout(el){const tid=el.dataset.id,amt=Number(el.dataset.amt);busy(el,true,'…');const note=(($('#po-'+tid)||{}).value||'').trim();const {error}=await sb.from('payouts').insert({tutor_id:tid,amount:amt,note});if(error){busy(el,false);toast(errMsg(error),true);return}invalidate('abal');rerenderKeep();toast('บันทึกการโอน '+baht(amt)+' แล้ว')},
 async commSet(el){const v=el.dataset.v,id=Number(el.dataset.id);busy(el,true,'…');const patch={status:v};if(v==='paid')patch.paid_at=new Date().toISOString();if(v==='due'){patch.admin_note='สลิปไม่ถูกต้อง กรุณาส่งใหม่';patch.slip_path=null}const {error}=await sb.from('commissions').update(patch).eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}invalidate('acomm');rerenderKeep();toast({paid:'ยืนยันรับเงินแล้ว',due:'ตีกลับให้ติวเตอร์ส่งใหม่แล้ว',waived:'ยกเว้นค่าธรรมเนียมแล้ว'}[v])},
 async togglePromo(el){busy(el,true,'…');const {error}=await sb.from('promo_codes').update({active:el.dataset.v==='1'}).eq('code',el.dataset.code);if(error){busy(el,false);toast(errMsg(error),true);return}invalidate('codes');rerenderKeep()},
 jAvail(el){const p=+el.dataset.p,d=+el.dataset.d;joinAvail[p][d]=joinAvail[p][d]?0:1;el.setAttribute('aria-pressed',!!joinAvail[p][d])}
@@ -1240,6 +1305,14 @@ document.addEventListener('change',async e=>{
  const el=e.target;
  if(el.matches('input[type=checkbox][data-act="compare"]')){actions.compare(el);return}
  if(el.matches('input[type=file][name=photo]')){const f=el.files&&el.files[0];const p=$('#photo-prev');if(f&&p){if(!/^image\//.test(f.type||'')){toast('กรุณาเลือกไฟล์รูปภาพ',true);el.value='';return}const u=URL.createObjectURL(f);p.innerHTML=`<img class="av" src="${u}" alt="ตัวอย่างรูปโปรไฟล์" style="width:96px;height:96px;object-fit:cover;border-radius:24px">`}return}
+ if(el.matches('input[type=file][data-payslip]')){const f=el.files&&el.files[0];if(!f)return;const bid=Number(el.dataset.payslip);
+  if(f.size>10*1024*1024){toast('ไฟล์ใหญ่เกิน 10 MB',true);return}
+  const lab=el.closest('label');if(lab){lab.firstChild.textContent='กำลังอัปโหลด…'}
+  try{const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=`${uid()}/pay-${bid}-${Date.now()}.${ext}`;
+   const up=await sb.storage.from('payment-slips').upload(path,f,{contentType:f.type||undefined});if(up.error)throw up.error;
+   const r=await sb.rpc('submit_payment',{p_booking:bid,p_path:path});if(r.error)throw r.error;
+   closeModal(true);invalidate('sbook');rerenderKeep();toast('ส่งสลิปแล้ว รอแอดมินตรวจสอบ')}catch(err){if(lab)lab.firstChild.textContent='แนบสลิปการโอน';toast(errMsg(err),true)}
+  return}
  if(el.matches('input[type=file][data-slip]')){const f=el.files&&el.files[0];if(!f)return;
   const due=(Array.isArray(cache['tcomm'])?cache['tcomm']:[]).filter(c=>c.status==='due').map(c=>c.id);if(!due.length)return;
   if(f.size>10*1024*1024){toast('ไฟล์ใหญ่เกิน 10 MB',true);return}
@@ -1247,7 +1320,7 @@ document.addEventListener('change',async e=>{
   try{const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=`${uid()}/slip-${Date.now()}.${ext}`;
    const up=await sb.storage.from('payment-slips').upload(path,f,{contentType:f.type||undefined});if(up.error)throw up.error;
    const r=await sb.rpc('submit_slip',{p_ids:due,p_path:path});if(r.error)throw r.error;
-   invalidate('tcomm');rerenderKeep();toast('ส่งสลิปแล้ว รอแอดมินตรวจสอบ')}catch(err){toast(errMsg(err),true)}
+   invalidate('tcomm','tbal');rerenderKeep();toast('ส่งสลิปแล้ว รอแอดมินตรวจสอบ')}catch(err){toast(errMsg(err),true)}
   return}
  if(el.matches('input[type=file][data-up]')){const k=el.dataset.up,f=el.files&&el.files[0];if(!f)return;toast('กำลังอัปโหลด…');try{await uploadDoc(k,f);await markDocs([k]);toast('อัปโหลดแล้ว รอแอดมินตรวจสอบ');rerenderKeep()}catch(err){toast(errMsg(err),true)}return}
  if(el.dataset.f){const k=el.dataset.f;
@@ -1288,6 +1361,9 @@ document.addEventListener('submit',async e=>{
   busy(btn,true,'กำลังอัปโหลด 0/'+files.length);let ok=0;
   for(const f of files){try{await addGalleryImage(f,fd.get('category')||'other',(fd.get('caption')||'').trim());ok++;btn.textContent='กำลังอัปโหลด '+ok+'/'+files.length}catch(x){toast(f.name+': '+errMsg(x),true)}}
   busy(btn,false);await loadGallery();rerenderKeep();if(ok)toast('อัปโหลดแล้ว '+ok+' รูป');return}
+ if(kind==='payoutInfo'){busy(btn,true);const row={tutor_id:uid(),method:fd.get('method'),account_no:String(fd.get('account_no')||'').replace(/[^0-9]/g,''),account_name:(fd.get('account_name')||'').trim(),bank_name:(fd.get('bank_name')||'').trim(),updated_at:new Date().toISOString()};
+  if(!row.account_no||!row.account_name){busy(btn,false);toast('กรอกเลขบัญชี/PromptPay และชื่อบัญชี',true);return}
+  const {error}=await sb.from('tutor_payout_info').upsert(row);busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('tpinfo');rerenderKeep();toast('บันทึกบัญชีรับเงินแล้ว');return}
  if(kind==='promo'){const code=String(fd.get('code')||'').trim().toUpperCase();const err=$('#pc-err');err.hidden=true;
   if(!/^[A-Z0-9_-]{3,30}$/.test(code)){err.textContent='โค้ดต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข 3–30 ตัว';err.hidden=false;return}
   const mx=fd.get('max_uses'),ex=fd.get('expires_at');busy(btn,true);
