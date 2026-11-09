@@ -229,7 +229,10 @@ footer{border-top:1px solid var(--line);background:var(--surface)}
 /* ====== ตั้งค่าการเชื่อมต่อ Supabase ====== */
 const SUPABASE_URL='https://uyoyhnrnoqssckntveaj.supabase.co';
 const SUPABASE_KEY='sb_publishable_Z5R4vpLQPWQDmsGFX-OFlw_9N6D1O_i';
-const sb=(window.supabase&&SUPABASE_KEY)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+const INIT_URL=location.hash+'&'+location.search;
+const IS_RECOVERY=/type=recovery/.test(INIT_URL);
+const AUTH_ERR=(()=>{const m=INIT_URL.match(/error_code=([^&#]+)/)||INIT_URL.match(/error_description=([^&#]+)/);return m?decodeURIComponent(m[1].replace(/\+/g,' ')):''})();
+const sb=(window.supabase&&SUPABASE_KEY)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}}):null;
 
 /* ---------- constants ---------- */
 const SUBJECTS=['คณิตศาสตร์','ภาษาอังกฤษ','วิทยาศาสตร์','ฟิสิกส์','เคมี','ชีววิทยา','เศรษฐศาสตร์','ภาษาไทย','สังคมศึกษา','ภาษาจีน','ภาษาญี่ปุ่น','คอมพิวเตอร์'];
@@ -282,13 +285,23 @@ const av=(t,size=56,fs=22,radius)=>(t&&t.photo_url&&String(t.photo_url).startsWi
  ?`<img class="av" src="${esc(t.photo_url)}" alt="" loading="lazy" style="width:${size}px;height:${size}px;object-fit:cover;${radius?`border-radius:${radius}px;`:''}">`
  :`<span class="av" aria-hidden="true" style="--h:${Number(t&&t.hue)||224};width:${size}px;height:${size}px;font-size:${fs}px;${radius?`border-radius:${radius}px;`:''}">${initial(t&&t.name)}</span>`;
 const rating=t=>Number(t.rating_avg)||0;
+const EYE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.5 4.5-1.2"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function pwField(id,name,label,ac){return `<div class="field"><label for="${id}">${label}</label><div style="position:relative;display:flex"><input class="input" id="${id}" name="${name}" type="password" autocomplete="${ac}" style="padding-right:54px"><button type="button" data-act="togglePw" data-for="${id}" aria-label="แสดงรหัสผ่าน" aria-pressed="false" style="position:absolute;right:2px;top:50%;transform:translateY(-50%);width:46px;height:42px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center">${EYE}</button></div></div>`}
+const CATS={teaching:'บรรยากาศการสอน',results:'ผลงาน / ผลสอบนักเรียน',award:'ใบประกาศ / รางวัล',material:'สื่อการสอน / ชีท',other:'อื่น ๆ'};
 const nick=t=>t.nick||t.name;
 function errMsg(e){const m=(e&&(e.message||e.error_description))||String(e||'');
  if(/Invalid login/i.test(m))return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
  if(/Email not confirmed/i.test(m))return 'กรุณากดลิงก์ยืนยันในอีเมลก่อนเข้าสู่ระบบ';
  if(/already registered|already been registered/i.test(m))return 'อีเมลนี้สมัครไว้แล้ว กรุณาเข้าสู่ระบบ';
  if(/bookings_slot_unique|duplicate key/i.test(m))return 'เวลานี้เพิ่งมีคนจองไป กรุณาเลือกเวลาอื่น';
- if(/rate limit|security purposes/i.test(m))return 'ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่';
+ if(/security purposes|after \d+ seconds/i.test(m))return 'เพิ่งส่งคำขอไปเมื่อสักครู่ กรุณารอประมาณ 1 นาทีแล้วลองอีกครั้ง';
+ if(/rate limit/i.test(m))return 'ระบบส่งอีเมลถึงขีดจำกัดชั่วคราว กรุณาลองใหม่ภายหลัง หรือแจ้งผู้ดูแลเว็บ';
+ if(/tutors_bio_min/i.test(m))return 'ประวัติและแนะนำตัวต้องยาวอย่างน้อย 50 ตัวอักษร กรุณาแก้ไขในหน้าแก้ไขโปรไฟล์';
+ if(/admins_only_one/i.test(m))return 'มีแอดมินอยู่แล้ว ระบบอนุญาตแอดมินเพียงคนเดียว';
+ if(/should be different/i.test(m))return 'รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม';
+ if(/session missing|not authenticated|JWT/i.test(m))return 'ลิงก์ตั้งรหัสผ่านหมดอายุหรือถูกใช้ไปแล้ว กรุณากด “ลืมรหัสผ่าน” เพื่อขอลิงก์ใหม่';
+ if(/otp_expired|expired|invalid.*(link|token)/i.test(m))return 'ลิงก์หมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่';
  if(/Password should be|at least 6/i.test(m))return 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
  if(/valid email|invalid format/i.test(m))return 'รูปแบบอีเมลไม่ถูกต้อง';
  if(/Failed to fetch|NetworkError/i.test(m))return 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต';
@@ -302,7 +315,8 @@ function saveL(){try{localStorage.setItem(LKEY,JSON.stringify(L))}catch(e){}}
 
 /* ---------- app state ---------- */
 let session=null, me=null, isAdmin=false, myTutor=null;
-let TUT=[], tutLoaded=false, tutErr='';
+let TUT=[], tutLoaded=false, tutErr='', GAL={}, galCat='all';
+const PUB=()=>TUT.filter(t=>t.verified);
 const cache={}, loading={};
 const F={q:'',subjects:[],level:'',min:'',max:'',province:'',mode:'all',exp:0,rating:0,verified:false,sort:'rec'};
 let adminTab='tutors';
@@ -315,7 +329,12 @@ const tutor=id=>TUT.find(t=>t.id===id);
 async function loadTutors(){
  const {data,error}=await sb.from('tutors').select('*').order('created_at',{ascending:false});
  if(error){tutErr=errMsg(error);TUT=[]}else{tutErr='';TUT=data||[]}
+ await loadGallery();
  tutLoaded=true;
+}
+async function loadGallery(){
+ const {data,error}=await sb.from('tutor_gallery').select('*').order('sort').order('created_at');
+ GAL={};if(!error)(data||[]).forEach(g=>{(GAL[g.tutor_id]=GAL[g.tutor_id]||[]).push(g)});
 }
 async function loadMe(){
  me=null;isAdmin=false;myTutor=null;
@@ -368,7 +387,7 @@ ${isSignup?`<fieldset style="border:0;padding:0;margin:0"><legend class="field" 
 <label class="check card" style="padding:12px 14px;border-radius:12px"><input type="radio" name="role" value="tutor" ${role==='tutor'?'checked':''}>ติวเตอร์</label></div></fieldset>
 <label class="field" for="au-name">ชื่อที่ใช้แสดง<input class="input" id="au-name" name="name" autocomplete="name" placeholder="เช่น คุณปรียา"></label>`:''}
 <label class="field" for="au-email">อีเมล<input class="input" id="au-email" name="email" type="email" autocomplete="email" placeholder="name@example.com"></label>
-${isForgot?'':`<label class="field" for="au-pass">รหัสผ่าน${isSignup?' (อย่างน้อย 6 ตัวอักษร)':''}<input class="input" id="au-pass" name="pass" type="password" autocomplete="${isSignup?'new-password':'current-password'}"></label>`}
+${isForgot?'':pwField('au-pass','pass','รหัสผ่าน'+(isSignup?' (อย่างน้อย 6 ตัวอักษร)':''),isSignup?'new-password':'current-password')}
 <p id="au-err" style="font-size:14px;color:var(--danger)" hidden></p>
 <p id="au-ok" style="font-size:14px;color:var(--ok)" hidden></p>
 <button class="btn btn-primary btn-lg" type="submit">${isForgot?'ส่งลิงก์ตั้งรหัสผ่านใหม่':isSignup?'สร้างบัญชี':'เข้าสู่ระบบ'}</button>
@@ -416,7 +435,7 @@ const loadingBox=(t='กำลังโหลด…')=>`<div class="empty" style
 const errBox=m=>`<div class="empty" style="border-color:var(--danger);color:var(--danger)">${esc(m)}</div>`;
 
 /* ---------- shared pieces ---------- */
-function verifiedBadge(t,big){return t.verified?`<span class="badge b-ok" ${big?'style="font-size:13px;padding:4px 12px"':''}>${I.check(12)}Verified Tutor</span>`:`<span class="badge b-warn">ยังไม่ยืนยันเอกสาร</span>`}
+function verifiedBadge(t,big){if(!t.verified)return t.review_status==='rejected'?`<span class="badge" style="background:var(--danger);color:#fff">ไม่ผ่านการอนุมัติ</span>`:`<span class="badge b-warn">รอแอดมินอนุมัติ</span>`;return t.verified?`<span class="badge b-ok" ${big?'style="font-size:13px;padding:4px 12px"':''}>${I.check(12)}Verified Tutor</span>`:`<span class="badge b-warn">ยังไม่ยืนยันเอกสาร</span>`}
 function ratingTxt(t){return t.rating_count?`<span class="stars">${I.star(18)}<span class="num">${rating(t).toFixed(1)}</span> <span class="muted" style="font-weight:400;font-size:14px">(${t.rating_count} รีวิว)</span></span>`:`<span class="badge b-info">ติวเตอร์ใหม่</span>`}
 function featuredCard(t){return `<article class="card fcard">
 <div style="display:flex;gap:14px;align-items:center">${av(t,56,22)}<div style="display:flex;flex-direction:column;min-width:0;line-height:1.4"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-family:var(--f-display);font-weight:600;font-size:18px">${esc(t.name)}</span>${t.verified?'<span class="badge b-ok">Verified</span>':''}</div><span class="muted" style="font-size:14px">${esc((t.subjects||[]).join(' · '))}</span></div></div>
@@ -426,7 +445,7 @@ function featuredCard(t){return `<article class="card fcard">
 
 /* ---------- HOME ---------- */
 function viewHome(){
- const top=[...TUT].sort((a,b)=>(b.verified-a.verified)||(rating(b)*Math.log(b.rating_count+2)-rating(a)*Math.log(a.rating_count+2))).slice(0,3);
+ const top=[...PUB()].sort((a,b)=>(b.verified-a.verified)||(rating(b)*Math.log(b.rating_count+2)-rating(a)*Math.log(a.rating_count+2))).slice(0,3);
  return `<section class="hero"><div class="wrap hero-in">
 <div style="flex:999 1 540px;min-width:0;display:flex;flex-direction:column;gap:22px">
 <span class="badge b-info" style="align-self:flex-start;font-size:14px;padding:6px 14px;background:var(--surface);border:1px solid var(--line-2)">${I.shield(16)} ตรวจสอบตัวตนติวเตอร์ก่อนให้เครื่องหมาย Verified</span>
@@ -451,7 +470,7 @@ ${[[I.shield(22),'ยืนยันตัวตนและวุฒิกา�
 <section id="subjects" class="wrap" style="padding-block:80px 32px">
 <div class="sec-head"><div><span class="eyebrow">ค้นหาตามวิชา</span><h2 class="h2">เลือกวิชาที่อยากเก่งขึ้น</h2></div><a href="#search" style="font-weight:600;display:flex;gap:6px;align-items:center">ดูติวเตอร์ทุกวิชา ${I.arrow}</a></div>
 <div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:14px">
-${SUBJECTS.map(s=>{const n=TUT.filter(t=>(t.subjects||[]).includes(s)).length;return `<button class="subj" data-act="subject" data-s="${s}"><span class="g" aria-hidden="true">${GLYPH[s]}</span><span style="display:flex;flex-direction:column;line-height:1.4"><span style="font-weight:600;font-size:17px">${s}</span><span class="muted" style="font-size:14px">${tutLoaded?n+' ติวเตอร์':'…'}</span></span></button>`}).join('')}
+${SUBJECTS.map(s=>{const n=PUB().filter(t=>(t.subjects||[]).includes(s)).length;return `<button class="subj" data-act="subject" data-s="${s}"><span class="g" aria-hidden="true">${GLYPH[s]}</span><span style="display:flex;flex-direction:column;line-height:1.4"><span style="font-weight:600;font-size:17px">${s}</span><span class="muted" style="font-size:14px">${tutLoaded?n+' ติวเตอร์':'…'}</span></span></button>`}).join('')}
 </div></section>
 
 <section class="wrap" style="padding-block:40px 80px">
@@ -480,8 +499,7 @@ ${[['ยืนยันบัตรประชาชน','ติวเตอร
 /* ---------- SEARCH ---------- */
 function filtered(){
  const qq=F.q.trim().toLowerCase();
- return TUT.filter(t=>{
-  if(F.verified&&!t.verified)return false;
+ return PUB().filter(t=>{
   if(qq&&!((t.name||'').toLowerCase().includes(qq)||(t.nick||'').toLowerCase().includes(qq)||(t.subjects||[]).some(s=>s.includes(F.q.trim()))||(t.headline||'').toLowerCase().includes(qq)))return false;
   if(F.subjects.length&&!F.subjects.some(s=>(t.subjects||[]).includes(s)))return false;
   if(F.level&&!(t.levels||[]).includes(F.level))return false;
@@ -504,7 +522,6 @@ function activeChips(){
  if(F.mode!=='all')c.push(['mode','',modeLabel(F.mode)]);
  if(F.exp)c.push(['exp','',`ประสบการณ์ ${F.exp}+ ปี`]);
  if(F.rating)c.push(['rating','',`${F.rating}+ ดาว`]);
- if(F.verified)c.push(['verified','','เฉพาะ Verified']);
  return c.length?c.map(([k,v,l])=>`<button class="chip" data-act="rmFilter" data-k="${k}" data-v="${esc(v)}" aria-label="ลบตัวกรอง ${esc(l)}">${esc(l)} ${I.x(13)}</button>`).join('')+`<button class="btn btn-ghost btn-sm" data-act="clearFilters" style="color:var(--link)">ล้างทั้งหมด</button>`:'';
 }
 function resultCard(t){
@@ -515,6 +532,7 @@ function resultCard(t){
 ${t.headline?`<p style="font-size:15px;color:var(--ink-2)">${esc(t.headline)}</p>`:''}
 <div style="display:flex;flex-wrap:wrap;gap:6px">${(t.subjects||[]).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}${(t.levels||[]).map(l=>`<span class="tag" style="background:transparent">${esc(l)}</span>`).join('')}</div>
 <div class="facts"><span>${I.cap}${esc(t.faculty)} ${esc(t.uni)}</span><span>${I.clock}ประสบการณ์สอน ${t.exp} ปี</span><span>${I.screen}${modesText(t.modes)}</span><span>${I.pin}${esc(t.province)}${(t.modes||[]).includes('onsite')&&t.areas?' · '+esc(t.areas):''}</span></div>
+${galStrip(t)}
 <label class="check" style="font-size:14px;color:var(--ink-2)"><input type="checkbox" data-act="compare" data-id="${t.id}" ${cmp?'checked':''}>เพิ่มในรายการเปรียบเทียบ</label>
 </div>
 <div class="side">
@@ -532,7 +550,7 @@ function renderResults(){
  $('#rcount').textContent=`พบ ${r.length} ติวเตอร์`;
  $('#rtitle').textContent=searchTitle();
  $('#chips').innerHTML=activeChips();
- box.innerHTML=r.length?r.map(resultCard).join(''):TUT.length?`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่พบติวเตอร์ที่ตรงกับเงื่อนไข</b><span>ลองลดตัวกรองบางข้อ เช่น ขยายช่วงราคา หรือเลือกเรียนออนไลน์</span><button class="btn btn-outline" data-act="clearFilters">ล้างตัวกรองทั้งหมด</button></div>`:`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่มีติวเตอร์ในระบบ</b><span>ชวนติวเตอร์ที่รู้จักมาสมัคร หรือสมัครเองได้เลย</span><a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a></div>`;
+ box.innerHTML=r.length?r.map(resultCard).join(''):PUB().length?`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่พบติวเตอร์ที่ตรงกับเงื่อนไข</b><span>ลองลดตัวกรองบางข้อ เช่น ขยายช่วงราคา หรือเลือกเรียนออนไลน์</span><button class="btn btn-outline" data-act="clearFilters">ล้างตัวกรองทั้งหมด</button></div>`:`<div class="empty card"><b style="font-size:18px;color:var(--ink)">ยังไม่มีติวเตอร์ในระบบ</b><span>ชวนติวเตอร์ที่รู้จักมาสมัคร หรือสมัครเองได้เลย</span><a class="btn btn-primary" href="#join">สมัครเป็นติวเตอร์</a></div>`;
 }
 function viewSearch(){
  const sel=(a,b)=>a===b?'selected':'';
@@ -558,8 +576,7 @@ ${[['rec','แนะนำ'],['new','สมัครล่าสุด'],['ratin
 <fieldset><label class="field" for="f-prov">จังหวัด<select class="input" id="f-prov" data-f="province"><option value="">ทุกจังหวัด</option>${PROVINCES.map(p=>`<option ${sel(F.province,p)}>${p}</option>`).join('')}</select></label><span class="muted" style="font-size:13px;font-weight:400">ติวเตอร์ที่สอนออนไลน์จะแสดงด้วยเสมอ</span></fieldset>
 <fieldset><legend>รูปแบบการเรียน</legend><div class="seg" role="group" aria-label="รูปแบบการเรียน">${[['all','ทั้งหมด'],['online','ออนไลน์'],['onsite','On-site']].map(([v,l])=>`<button type="button" data-f="mode" data-v="${v}" aria-pressed="${F.mode===v}">${l}</button>`).join('')}</div></fieldset>
 <fieldset><legend>ประสบการณ์ติวเตอร์</legend>${[[0,'ทั้งหมด'],[1,'1 ปีขึ้นไป'],[3,'3 ปีขึ้นไป'],[5,'5 ปีขึ้นไป']].map(([v,l])=>`<label class="check"><input type="radio" name="exp" data-f="exp" value="${v}" ${F.exp===v?'checked':''}>${l}</label>`).join('')}</fieldset>
-<fieldset><legend>คะแนนรีวิว</legend>${[[4.5,'4.5 ดาวขึ้นไป'],[4,'4.0 ดาวขึ้นไป'],[0,'ทั้งหมด']].map(([v,l])=>`<label class="check"><input type="radio" name="rating" data-f="rating" value="${v}" ${F.rating===v?'checked':''}>${l}</label>`).join('')}
-<label class="check" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--line)"><input type="checkbox" data-f="verified" ${F.verified?'checked':''}>แสดงเฉพาะ Verified Tutor</label></fieldset>
+<fieldset><legend>คะแนนรีวิว</legend>${[[4.5,'4.5 ดาวขึ้นไป'],[4,'4.0 ดาวขึ้นไป'],[0,'ทั้งหมด']].map(([v,l])=>`<label class="check"><input type="radio" name="rating" data-f="rating" value="${v}" ${F.rating===v?'checked':''}>${l}</label>`).join('')}</fieldset>
 </aside>
 <section id="results" class="results" aria-label="ผลการค้นหา"></section>
 </div></div></div>`;
@@ -581,6 +598,7 @@ function bookingCard(t){
  const P=cache['prof:'+t.id];const taken=P&&P.taken||[];
  ensureB(t,taken);
  if(B.sent){const b=B.sent;return `<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start"><span style="display:flex;width:52px;height:52px;border-radius:16px;background:var(--ok-bg);color:var(--ok);align-items:center;justify-content:center">${I.check(26)}</span><h2 style="font-size:22px;font-weight:700">ส่งคำขอจองแล้ว</h2><p class="muted">${esc(nick(t))} จะเห็นคำขอในแดชบอร์ดและยืนยันเวลากลับมา ติดตามสถานะได้ในแดชบอร์ดของคุณ</p><div class="card" style="padding:14px 16px;width:100%;font-size:15px;display:flex;flex-direction:column;gap:2px"><b style="font-weight:600">${esc(b.subject)} · ${modeLabel(b.mode)}</b><span class="muted">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)}${b.student?' · '+esc(b.student):''}</span><span class="num" style="font-weight:600">${b.is_trial?'ทดลองเรียนฟรี (โค้ด '+esc(b.promo_code)+')':baht(b.student_price)}</span></div><div style="display:flex;flex-wrap:wrap;gap:8px;width:100%"><a class="btn btn-primary" href="#student" style="flex:1">ไปที่แดชบอร์ด</a><button class="btn btn-outline" data-act="bookAgain" style="flex:1">จองเวลาอื่น</button></div></div>`}
+ if(!t.verified&&uid()!==t.id)return `<p class="muted">ติวเตอร์ท่านนี้ยังไม่เปิดรับจอง</p>`;
  if(uid()===t.id)return `<div style="display:flex;flex-direction:column;gap:12px"><b style="font-family:var(--f-display);font-size:20px">นี่คือโปรไฟล์ของคุณ</b><p class="muted">ผู้ปกครองจะเห็นกล่องจองเรียนตรงนี้</p><a class="btn btn-primary" href="#tutor-dashboard">ไปที่แดชบอร์ดติวเตอร์</a></div>`;
  const rate=B.mode==='online'?t.price:t.price_onsite;
  const dates=bookingDates().slice(B.weekOffset,B.weekOffset+7);
@@ -629,9 +647,11 @@ ${t.headline?`<p style="font-size:17px;color:var(--ink-2)">${esc(t.headline)}</p
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline" data-act="save" data-id="${t.id}" aria-pressed="${saved}" style="${saved?'color:#E5484D;border-color:#F3B0B2':''}">${I.heart(18,saved)} ${saved?'บันทึกแล้ว':'บันทึก'}</button><button class="btn btn-outline" data-act="compare" data-id="${t.id}" aria-pressed="${cmp}">${cmp?I.check(16)+' อยู่ในรายการเปรียบเทียบ':'เปรียบเทียบ'}</button></div>
 </div>
-<nav aria-label="หัวข้อในโปรไฟล์" style="display:flex;flex-wrap:wrap;gap:0 26px;padding:0 clamp(18px,3vw,32px);border-top:1px solid var(--line);font-size:15px">${[['p-about','เกี่ยวกับ'],['p-edu','การศึกษาและประสบการณ์'],['p-subj','วิชาและราคา'],['p-sched','ตารางเวลา'],['p-rev','รีวิว']].map(([i,l])=>`<button data-act="scrollTo" data-target="${i}" style="background:none;border:0;padding:13px 0;color:var(--ink-2);cursor:pointer;font-weight:500">${l}</button>`).join('')}</nav>
+<nav aria-label="หัวข้อในโปรไฟล์" style="display:flex;flex-wrap:wrap;gap:0 26px;padding:0 clamp(18px,3vw,32px);border-top:1px solid var(--line);font-size:15px">${[['p-gal','ผลงาน'],['p-about','เกี่ยวกับ'],['p-edu','การศึกษาและประสบการณ์'],['p-subj','วิชาและราคา'],['p-sched','ตารางเวลา'],['p-rev','รีวิว']].map(([i,l])=>`<button data-act="scrollTo" data-target="${i}" style="background:none;border:0;padding:13px 0;color:var(--ink-2);cursor:pointer;font-weight:500">${l}</button>`).join('')}</nav>
 </section>
+${!t.verified?`<section class="card pad" style="border-color:var(--warn);background:var(--warn-bg);margin-bottom:24px"><b style="color:var(--warn)">โปรไฟล์นี้ยังไม่เผยแพร่</b><p style="font-size:14px;color:var(--ink-2)">${t.review_status==='rejected'?'ไม่ผ่านการอนุมัติ'+(t.review_note?': '+esc(t.review_note):''):'รอแอดมินตรวจสอบและอนุมัติ เห็นได้เฉพาะเจ้าของโปรไฟล์และแอดมิน'}</p></section>`:''}
 <div class="prof-grid"><div class="prof-main">
+${galleryHtml(t)}
 <section id="p-about" class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">เกี่ยวกับฉันและเทคนิคการสอน</h2><p style="color:var(--ink-2);max-width:68ch;white-space:pre-line">${esc(t.bio||'ติวเตอร์ยังไม่ได้เขียนแนะนำตัว')}</p></section>
 <section id="p-edu" class="card pad" style="display:flex;flex-wrap:wrap;gap:32px">
 <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:14px"><h2 style="font-size:22px;font-weight:600">ประวัติการศึกษา</h2>
@@ -659,6 +679,70 @@ ${P&&!P.error?(reviews.length?reviews.map(r=>`<article style="display:flex;flex-
 </div></div></div>`;
 }
 
+/* ---------- Gallery (ผลงานแบบ Pinterest) ---------- */
+function fitJpeg(file,max){
+ return new Promise((resolve,reject)=>{
+  if(!/^image\//.test(file.type||''))return reject(new Error('ไฟล์นี้ไม่ใช่รูปภาพ'));
+  if(file.size>25*1024*1024)return reject(new Error('รูปใหญ่เกิน 25 MB'));
+  const url=URL.createObjectURL(file);const img=new Image();
+  img.onload=()=>{let w=img.naturalWidth,h=img.naturalHeight;const k=Math.min(1,max/Math.max(w,h));w=Math.round(w*k);h=Math.round(h*k);const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);URL.revokeObjectURL(url);c.toBlob(b=>b?resolve({blob:b,w,h}):reject(new Error('แปลงรูปไม่สำเร็จ')),'image/jpeg',0.84)};
+  img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('เปิดไฟล์รูปนี้ไม่ได้ ลองใช้ไฟล์ JPG หรือ PNG'))};
+  img.src=url;
+ });
+}
+async function addGalleryImage(file,category,caption){
+ const {blob,w,h}=await fitJpeg(file,1600);
+ const path=`${uid()}/gallery-${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;
+ const up=await sb.storage.from('tutor-photos').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});if(up.error)throw up.error;
+ const url=sb.storage.from('tutor-photos').getPublicUrl(path).data.publicUrl;
+ const {error}=await sb.from('tutor_gallery').insert({tutor_id:uid(),url,caption,category:CATS[category]?category:'other',width:w,height:h,sort:(GAL[uid()]||[]).length});
+ if(error){await sb.storage.from('tutor-photos').remove([path]);throw error}
+}
+function galStrip(t){
+ const g=GAL[t.id]||[];if(!g.length)return '';
+ return `<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:440px">${g.slice(0,4).map((x,i)=>`<a href="#t-${t.id}" aria-label="ดูผลงานของ ${esc(t.name)}" style="position:relative;display:block;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--surface-2)"><img src="${esc(x.url)}" alt="${esc(x.caption||CATS[x.category]||'ผลงานของติวเตอร์')}" loading="lazy" style="width:100%;height:100%;object-fit:cover">${i===3&&g.length>4?`<span style="position:absolute;inset:0;background:rgba(14,26,58,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600">+${g.length-4}</span>`:''}</a>`).join('')}</div>`;
+}
+function galleryHtml(t){
+ const all=GAL[t.id]||[];const own=uid()===t.id;
+ if(!all.length&&!own)return '';
+ const cats=[...new Set(all.map(g=>g.category))];
+ const list=galCat==='all'||!cats.includes(galCat)?all:all.filter(g=>g.category===galCat);
+ return `<section id="p-gal" class="card pad" style="display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center"><h2 style="font-size:22px;font-weight:600">ผลงานและบรรยากาศการสอน</h2>${own?`<button class="btn btn-outline btn-sm" data-act="goGallery">จัดการรูป</button>`:''}</div>
+${cats.length>1?`<div class="chips">${[['all','ทั้งหมด'],...cats.map(c=>[c,CATS[c]||c])].map(([k,l])=>`<button class="pill" style="min-height:36px" data-act="galCat" data-v="${k}" aria-pressed="${(galCat===k)||(k==='all'&&!cats.includes(galCat))}">${esc(l)}</button>`).join('')}</div>`:''}
+${all.length?`<div style="columns:3 200px;column-gap:12px">${list.map(g=>{const i=all.indexOf(g);return `<figure style="break-inside:avoid;margin:0 0 12px;display:flex;flex-direction:column;gap:6px"><button data-act="openGal" data-tid="${t.id}" data-i="${i}" style="display:block;width:100%;padding:0;border:0;background:var(--surface-2);border-radius:16px;overflow:hidden;cursor:zoom-in;position:relative" aria-label="ขยายรูป ${esc(g.caption||CATS[g.category]||'')}"><img src="${esc(g.url)}" alt="${esc(g.caption||CATS[g.category]||'ผลงานของติวเตอร์')}" loading="lazy" style="display:block;width:100%;height:auto;${g.width&&g.height?`aspect-ratio:${g.width}/${g.height};`:''}object-fit:cover"><span class="badge" style="position:absolute;left:8px;top:8px;background:rgba(14,26,58,.7);color:#fff">${esc(CATS[g.category]||'')}</span></button>${g.caption?`<figcaption style="font-size:14px;color:var(--ink-2);line-height:1.45;padding:0 4px">${esc(g.caption)}</figcaption>`:''}</figure>`}).join('')}</div>`:`<div class="empty">ยังไม่มีรูปผลงาน เพิ่มรูปบรรยากาศการสอน ผลสอบนักเรียน หรือใบประกาศ เพื่อให้ผู้ปกครองมั่นใจ</div>`}
+</section>`;
+}
+function openLightbox(tid,i){
+ const all=GAL[tid]||[];if(!all.length)return;i=(i+all.length)%all.length;const g=all[i];
+ openModal(`${mhead(esc(CATS[g.category]||'ผลงาน')+` <span class="muted" style="font-size:15px;font-weight:400">${i+1}/${all.length}</span>`)}
+<div style="background:var(--surface-2);border-radius:14px;overflow:hidden;display:flex;justify-content:center"><img src="${esc(g.url)}" alt="${esc(g.caption||'ผลงานของติวเตอร์')}" style="max-width:100%;max-height:68vh;object-fit:contain;display:block"></div>
+${g.caption?`<p style="color:var(--ink-2)">${esc(g.caption)}</p>`:''}
+${all.length>1?`<div style="display:flex;justify-content:space-between;gap:8px"><button class="btn btn-outline" data-act="galNav" data-tid="${tid}" data-i="${i-1}">${I.back} ก่อนหน้า</button><button class="btn btn-outline" data-act="galNav" data-tid="${tid}" data-i="${i+1}">ถัดไป <span style="transform:scaleX(-1);display:flex">${I.back}</span></button></div>`:''}`,true);
+}
+function approvalBanner(t){
+ if(t.verified)return '';
+ const g=(GAL[t.id]||[]).length;const docN=['id','edu','cert'].filter(k=>(t.docs||{})[k]&&t.docs[k]!=='none').length;
+ const item=(ok,l,tab)=>`<li style="display:flex;gap:8px;align-items:center">${ok?I.check(15,'var(--ok)'):`<span style="width:15px;height:15px;border:2px solid var(--muted);border-radius:999px;display:inline-block"></span>`}<span>${l}</span>${!ok&&tab?`<button class="btn btn-ghost btn-sm" style="color:var(--link);min-height:30px" data-act="tutTab" data-v="${tab}">เพิ่ม</button>`:''}</li>`;
+ const rej=t.review_status==='rejected';
+ return `<section class="card pad" style="border-color:${rej?'var(--danger)':'var(--warn)'};background:var(--warn-bg);display:flex;flex-direction:column;gap:10px">
+<b style="font-weight:600;color:${rej?'var(--danger)':'var(--warn)'};font-size:17px">${rej?'ใบสมัครยังไม่ผ่านการอนุมัติ':'ใบสมัครของคุณรอแอดมินอนุมัติ'}</b>
+<p style="font-size:14px;color:var(--ink-2)">${rej?(t.review_note?'เหตุผล: '+esc(t.review_note)+' · ':'')+'แก้ไขข้อมูลแล้วกดบันทึกในเมนู “แก้ไขโปรไฟล์” ระบบจะส่งตรวจใหม่อัตโนมัติ':'โปรไฟล์ของคุณยังไม่แสดงให้ผู้ปกครองเห็นจนกว่าแอดมินจะอนุมัติ เตรียมข้อมูลให้ครบเพื่อให้อนุมัติได้เร็วขึ้น'}</p>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px">${item(!!t.photo_url,'รูปโปรไฟล์','profile')}${item((t.bio||'').length>=50,'ประวัติและแนะนำตัว (อย่างน้อย 50 ตัวอักษร)','profile')}${item(docN>0,'เอกสารยืนยันตัวตน (อัปโหลดในหน้าภาพรวม)','')}${item(g>0,'รูปผลงาน / บรรยากาศการสอน (แนะนำ)','gallery')}</ul></section>`;
+}
+function galleryManager(t){
+ const all=GAL[t.id]||[];
+ return `<form class="card pad" data-form="galUpload" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center"><h2 style="font-size:20px;font-weight:600">เพิ่มรูปผลงาน</h2><span class="muted num">${all.length}/12 รูป</span></div>
+<p class="muted" style="font-size:14px">รูปที่ช่วยให้ผู้ปกครองตัดสินใจ: บรรยากาศขณะสอน ผลสอบหรือคะแนนที่นักเรียนพัฒนาขึ้น ใบประกาศ รางวัล สื่อการสอนหรือชีทที่ทำเอง ระบบย่อรูปให้อัตโนมัติ</p>
+<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px">
+<label class="field" for="g-files">เลือกรูป (เลือกได้หลายรูป)<input class="input" id="g-files" name="gfiles" type="file" multiple accept="image/jpeg,image/png,image/webp" style="padding:8px"></label>
+<label class="field" for="g-cat">หมวดหมู่<select class="input" id="g-cat" name="category">${Object.entries(CATS).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></label>
+<label class="field" for="g-cap">คำบรรยาย (ใช้กับทุกรูปที่เลือก แก้ทีละรูปได้ภายหลัง)<input class="input" id="g-cap" name="caption" maxlength="200" placeholder="เช่น นักเรียนเกรดคณิตขึ้นจาก 2 เป็น 4"></label></div>
+<p style="font-size:13px;color:var(--warn)">ห้ามลงรูปที่เห็นหน้าหรือข้อมูลส่วนตัวของนักเรียน เว้นแต่ได้รับอนุญาตจากผู้ปกครองแล้ว และควรปิดชื่อนักเรียนบนผลสอบ</p>
+<button class="btn btn-primary" type="submit" style="align-self:flex-start" ${all.length>=12?'disabled':''}>อัปโหลดรูป</button></form>
+<section class="card pad" style="display:flex;flex-direction:column;gap:14px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center"><h2 style="font-size:20px;font-weight:600">รูปของคุณ</h2><a class="btn btn-outline btn-sm" href="#t-${t.id}">ดูตัวอย่างหน้าโปรไฟล์</a></div>
+${all.length?`<div style="columns:3 220px;column-gap:14px">${all.map(g=>`<div style="break-inside:avoid;margin-bottom:14px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface)"><img src="${esc(g.url)}" alt="${esc(g.caption||'')}" loading="lazy" style="display:block;width:100%;height:auto"><div style="padding:10px;display:flex;flex-direction:column;gap:8px"><label class="sr" for="gk-${g.id}">หมวดหมู่</label><select class="input" id="gk-${g.id}" style="min-height:38px;padding:6px 10px">${Object.entries(CATS).map(([k,l])=>`<option value="${k}" ${g.category===k?'selected':''}>${l}</option>`).join('')}</select><label class="sr" for="gc-${g.id}">คำบรรยาย</label><input class="input" id="gc-${g.id}" value="${esc(g.caption)}" maxlength="200" placeholder="คำบรรยาย" style="min-height:38px;padding:6px 10px"><div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" style="flex:1" data-act="galSave" data-id="${g.id}">บันทึก</button><button class="btn btn-ghost btn-sm" style="color:var(--danger)" data-act="galDel" data-id="${g.id}">ลบ</button></div></div></div>`).join('')}</div>`:`<div class="empty">ยังไม่มีรูป</div>`}</section>`;
+}
 /* ---------- AUTH GATE ---------- */
 function loginGate(kind){
  const isT=kind==='tutor';
@@ -789,16 +873,16 @@ function viewTutorDash(){
  const docs=t.docs||{};
  const docList=[['id','บัตรประชาชน'],['edu','ประวัติการศึกษา / ใบปริญญา'],['cert','ใบรับรองหรือเอกสารเพิ่มเติม']];
  const dl={ok:['ยืนยันแล้ว','b-ok'],review:['รอแอดมินตรวจสอบ','b-info'],none:['ยังไม่อัปโหลด','b-warn']};
- const tabs=[['overview','ภาพรวม'],['requests','คำขอจอง'],['schedule','ตารางสอน'],['messages','ข้อความ'],['fees','ค่าธรรมเนียม'],['profile','แก้ไขโปรไฟล์']];
+ const tabs=[['overview','ภาพรวม'],['gallery','ผลงาน / รูปภาพ'],['requests','คำขอจอง'],['schedule','ตารางสอน'],['messages','ข้อความ'],['fees','ค่าธรรมเนียม'],['profile','แก้ไขโปรไฟล์']];
  const show=k=>tutorTab==='overview'||tutorTab===k;
  const reqRows=pending.map(b=>`<article style="border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center"><span class="av" style="width:44px;height:44px;font-size:17px;background:var(--surface-2);color:var(--ink-2)">${initial(b.parent_name)}</span><div style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;line-height:1.45"><b style="font-weight:600">${esc(b.parent_name||'ผู้ปกครอง')}${b.student?` · ผู้เรียน: ${esc(b.student)}`:''}</b><span style="font-size:14px;color:var(--ink-2)">${esc(b.subject)} · ${modeLabel(b.mode)}</span><span class="muted num" style="font-size:14px">${fmtDate(b.day)} · ${b.start_time}–${endTime(b.start_time,b.hours)} · ${b.is_trial?'นักเรียนเรียนฟรี':'ค่าเรียน '+baht(b.student_price)}</span><span style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">${b.is_trial?`<span class="badge b-ok">ทดลองเรียนฟรี · โค้ด ${esc(b.promo_code)}</span>`:''}${isFirst(b)?`<span class="badge b-warn">ผู้เรียนใหม่ · ค่าธรรมเนียมแพลตฟอร์ม ${baht(b.list_price)} เมื่อสอนคาบนี้เสร็จ</span>`:''}</span>${b.note?`<span style="font-size:14px;color:var(--ink-2)">“${esc(b.note)}”</span>`:''}</div><div style="display:flex;gap:8px"><button class="btn btn-outline btn-sm" data-act="setStatus" data-id="${b.id}" data-v="declined">ปฏิเสธ</button><button class="btn btn-primary btn-sm" data-act="setStatus" data-id="${b.id}" data-v="confirmed">ตอบรับ</button></div></article>`).join('');
  return `<div class="dash">
-<aside class="dash-side navy"><div class="hide-sm" style="display:flex;gap:10px;align-items:center;padding:4px 8px">${av(t,40,17)}<div style="line-height:1.3;min-width:0"><b style="font-weight:600">${esc(nick(t))}</b><br><span style="font-size:13px;color:${t.verified?'#8FE0C4':'#F2C467'}">${t.verified?'Verified Tutor':'ยังไม่ยืนยันเอกสาร'}</span></div></div>
+<aside class="dash-side navy"><div class="hide-sm" style="display:flex;gap:10px;align-items:center;padding:4px 8px">${av(t,40,17)}<div style="line-height:1.3;min-width:0"><b style="font-weight:600">${esc(nick(t))}</b><br><span style="font-size:13px;color:${t.verified?'#8FE0C4':t.review_status==='rejected'?'#FF8A80':'#F2C467'}">${t.verified?'อนุมัติแล้ว · Verified':t.review_status==='rejected'?'ไม่ผ่านการอนุมัติ':'รอแอดมินอนุมัติ'}</span></div></div>
 <nav class="dash-nav" aria-label="เมนูติวเตอร์">${tabs.map(([k,l])=>`<button data-act="tutTab" data-v="${k}" aria-current="${tutorTab===k}">${l}${k==='requests'&&pending.length?`<span class="badge" style="background:#fff;color:#0E1A3A">${pending.length}</span>`:''}${k==='fees'&&dueList.length?`<span class="badge" style="background:${overdue?'#FF8A80':'#F2C467'};color:#0E1A3A">${dueList.length}</span>`:''}</button>`).join('')}<a class="btn btn-ghost" href="#t-${t.id}" style="justify-content:flex-start;padding:0 12px;font-weight:500;color:var(--on-navy-muted)">ดูโปรไฟล์สาธารณะ ${I.arrow}</a></nav></aside>
 <main class="dash-main">
 <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px"><div><h1 style="font-weight:700;font-size:clamp(1.6rem,2.6vw,2rem)">สวัสดี ${esc(nick(t))}</h1><span class="muted">${!bk?'กำลังโหลดข้อมูล…':pending.length?`มีคำขอจองใหม่ ${pending.length} รายการรอการตอบรับ`:'ไม่มีคำขอจองค้างอยู่'}</span></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-outline" data-act="refresh">รีเฟรช</button><a class="btn btn-outline" href="#t-${t.id}">ดูโปรไฟล์สาธารณะ</a><button class="btn btn-primary" data-act="tutTab" data-v="profile">แก้ไขโปรไฟล์</button></div></div>
 ${bk&&bk.error?errBox(bk.error):''}
-${!t.verified?`<section class="card pad" style="border-color:var(--warn);background:var(--warn-bg);display:flex;flex-direction:column;gap:6px"><b style="font-weight:600;color:var(--warn)">โปรไฟล์ของคุณแสดงในผลค้นหาแล้ว แต่ยังไม่มีเครื่องหมาย Verified</b><p style="color:var(--ink-2);font-size:14px">อัปโหลดบัตรประชาชน วุฒิการศึกษา และใบรับรองด้านล่าง ทีมงานจะตรวจสอบแล้วให้เครื่องหมาย Verified Tutor</p></section>`:''}
+${approvalBanner(t)}
 ${dueList.length&&tutorTab!=='fees'?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:${overdue?'var(--danger)':'var(--warn)'};background:var(--warn-bg)"><div style="flex:1 1 300px"><b style="font-weight:600;color:${overdue?'var(--danger)':'var(--warn)'}">ค่าธรรมเนียมแพลตฟอร์มรอชำระ ${baht(dueTotal)}</b><p style="font-size:14px;color:var(--ink-2)">${overdue?'เกินกำหนดชำระแล้ว คุณจะกดตอบรับคำขอใหม่ไม่ได้จนกว่าจะชำระ':'ชำระผ่าน PromptPay แล้วแนบสลิปในเมนูค่าธรรมเนียม'}</p></div><button class="btn btn-primary" data-act="tutTab" data-v="fees">ชำระค่าธรรมเนียม</button></section>`:''}
 ${tutorTab==='overview'&&!t.photo_url?`<section class="card pad" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;border-color:var(--line-2);background:var(--bg-soft)"><div style="display:flex;gap:14px;align-items:center;flex:1 1 300px">${av(t,52,22)}<div><b style="font-weight:600">เพิ่มรูปโปรไฟล์ของคุณ</b><p class="muted" style="font-size:14px">ให้ผู้ปกครองเห็นหน้าคุณก่อนตัดสินใจจองเรียน</p></div></div><button class="btn btn-primary" data-act="tutTab" data-v="profile">เพิ่มรูปโปรไฟล์</button></section>`:''}
 ${tutorTab==='overview'?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px">
@@ -817,6 +901,7 @@ ${tutorTab==='overview'?`<div style="display:flex;flex-wrap:wrap;gap:20px;align-
 <div class="chart-x">${months.map(m=>`<span>${m.label}</span>`).join('')}</div></section>
 <section class="card pad" style="flex:2 1 320px;min-width:0;display:flex;flex-direction:column;gap:12px"><h2 style="font-size:20px;font-weight:600">เอกสารยืนยันตัวตน</h2><p class="muted" style="font-size:13px">ไฟล์เปิดดูได้เฉพาะคุณและแอดมิน (รูปภาพหรือ PDF ไม่เกิน 10 MB)</p>
 <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column">${docList.map(([k,l])=>`<li style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap"><span>${l}</span><span style="display:flex;gap:8px;align-items:center"><span class="badge ${dl[docs[k]||'none'][1]}">${dl[docs[k]||'none'][0]}</span>${docs[k]!=='ok'?`<label class="btn btn-outline btn-sm" style="cursor:pointer">${docs[k]==='review'?'ส่งใหม่':'อัปโหลด'}<input type="file" class="sr" data-up="${k}" accept="image/*,.pdf"></label>`:''}</span></li>`).join('')}</ul></section></div>`:''}
+${tutorTab==='gallery'?galleryManager(t):''}
 ${tutorTab==='fees'?feesView(comm,dueList,dueTotal,overdue):''}
 ${tutorTab==='profile'?profileEditor(t):''}
 </main></div>`;
@@ -863,7 +948,7 @@ function tutorFields(t,isJoin){
 <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center">
 <span id="photo-prev" style="display:inline-flex">${av(t.name?t:{name:'?',hue:224},96,38,24)}</span>
 <div style="display:flex;flex-direction:column;gap:8px;flex:1 1 240px">
-<span class="field">รูปโปรไฟล์</span>
+<span class="field">รูปโปรไฟล์ *</span>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><label class="btn btn-outline btn-sm" style="cursor:pointer">${t.photo_url?'เปลี่ยนรูป':'เลือกรูป'}<input type="file" class="sr" id="j-photo" name="photo" accept="image/jpeg,image/png,image/webp"></label>${t.photo_url?`<label class="check" style="font-size:14px"><input type="checkbox" name="removePhoto">ลบรูปปัจจุบัน</label>`:''}</div>
 <span class="muted" style="font-size:13px;font-weight:400">ใช้รูปหน้าตรงที่เห็นใบหน้าชัดเจน ไฟล์ JPG, PNG หรือ WebP ระบบจะครอปเป็นสี่เหลี่ยมจัตุรัสให้อัตโนมัติ</span>
 </div></div>
@@ -871,7 +956,7 @@ function tutorFields(t,isJoin){
 <label class="field" for="j-name">ชื่อ–นามสกุล *<input class="input" id="j-name" name="name" autocomplete="name" value="${esc(t.name||'')}" maxlength="120"></label>
 <label class="field" for="j-nick">ชื่อที่ให้นักเรียนเรียก<input class="input" id="j-nick" name="nick" placeholder="เช่น ครูบีม" value="${esc(t.nick||'')}" maxlength="40"></label></div>
 <label class="field" for="j-head">แนะนำตัวสั้น ๆ (แสดงบนการ์ด)<input class="input" id="j-head" name="headline" placeholder="เช่น ติวคณิต ม.ต้น ปูพื้นฐานแน่น" value="${esc(t.headline||'')}" maxlength="200"></label>
-<label class="field" for="j-bio">เกี่ยวกับฉันและเทคนิคการสอน<textarea class="input" id="j-bio" name="bio" rows="4" maxlength="3000">${esc(t.bio||'')}</textarea></label></section>
+<label class="field" for="j-bio">ประวัติ แนะนำตัว และเทคนิคการสอน * (อย่างน้อย 50 ตัวอักษร)<textarea class="input" id="j-bio" name="bio" rows="4" maxlength="3000">${esc(t.bio||'')}</textarea></label></section>
 <section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">${isJoin?'3. ':''}ประวัติการศึกษาและประสบการณ์</h2>
 <div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px">
 <label class="field" for="j-uni">มหาวิทยาลัย *<input class="input" id="j-uni" name="uni" value="${esc(t.uni||'')}"></label>
@@ -900,21 +985,24 @@ function viewJoin(){
  return `<div style="background:var(--page)"><div class="wrap" style="padding-block:36px 80px;max-width:920px">
 <span class="eyebrow">สมัครเป็นติวเตอร์ (ฟรี)</span>
 <h1 style="font-weight:700;font-size:clamp(1.8rem,3vw,2.4rem);margin:6px 0 8px">สร้างโปรไฟล์ติวเตอร์ของคุณ</h1>
-<p class="muted" style="margin-bottom:24px">โปรไฟล์จะแสดงในหน้าค้นหาทันทีหลังสมัคร และได้รับเครื่องหมาย Verified Tutor เมื่อทีมงานตรวจเอกสารแล้ว</p>
+<p class="muted" style="margin-bottom:24px">ทุกใบสมัครต้องผ่านการตรวจสอบและอนุมัติจากแอดมินก่อน โปรไฟล์จึงจะแสดงให้ผู้ปกครองและนักเรียนเห็น</p>
 <form data-form="join" novalidate style="display:flex;flex-direction:column;gap:20px">
 <section class="card pad" style="display:flex;flex-direction:column;gap:14px"><h2 style="font-size:19px;font-weight:600">1. บัญชีผู้ใช้</h2>
 ${uid()?`<p>เข้าสู่ระบบอยู่ในชื่อ <b>${esc(session.user.email)}</b> โปรไฟล์ติวเตอร์จะผูกกับบัญชีนี้</p>`:`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">
 <label class="field" for="j-email">อีเมล *<input class="input" id="j-email" name="email" type="email" autocomplete="email"></label>
-<label class="field" for="j-pass">ตั้งรหัสผ่าน * (อย่างน้อย 6 ตัว)<input class="input" id="j-pass" name="pass" type="password" autocomplete="new-password"></label></div>
+${pwField('j-pass','pass','ตั้งรหัสผ่าน * (อย่างน้อย 6 ตัว)','new-password')}</div>
 <p class="muted" style="font-size:14px">มีบัญชีอยู่แล้ว? <button type="button" class="btn btn-ghost btn-sm" data-act="auth" data-m="login" style="color:var(--link)">เข้าสู่ระบบก่อน</button></p>`}</section>
 ${tutorFields(t,true)}
-<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:19px;font-weight:600">6. เอกสารยืนยันตัวตน (อัปโหลดตอนนี้หรือภายหลังในแดชบอร์ดก็ได้)</h2><p class="muted" style="font-size:14px">เอกสารใช้เพื่อตรวจสอบเท่านั้น เปิดดูได้เฉพาะคุณและแอดมิน ไม่แสดงต่อสาธารณะ</p>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:19px;font-weight:600">6. รูปผลงานและบรรยากาศการสอน (แนะนำ)</h2><p class="muted" style="font-size:14px">เช่น รูปขณะสอน ผลสอบหรือผลงานนักเรียน ใบประกาศ สื่อการสอน ช่วยให้ผู้ปกครองมั่นใจว่าคุณสอนเก่งจริง เลือกได้หลายรูป (สูงสุด 12 รูป) และจัดหมวดหมู่หรือใส่คำบรรยายภายหลังได้ในแดชบอร์ด</p>
+<label class="field" for="j-gal" style="border:1px dashed var(--line-2);border-radius:14px;padding:14px;cursor:pointer">เลือกรูปผลงาน<input id="j-gal" name="gfiles" type="file" multiple accept="image/jpeg,image/png,image/webp" style="font-size:13px;font-weight:400;max-width:100%"></label>
+<p class="muted" style="font-size:13px">ห้ามลงรูปที่เห็นหน้าหรือข้อมูลส่วนตัวของนักเรียน เว้นแต่ได้รับอนุญาตจากผู้ปกครองแล้ว</p></section>
+<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h2 style="font-size:19px;font-weight:600">7. เอกสารยืนยันตัวตน (อัปโหลดตอนนี้หรือภายหลังในแดชบอร์ดก็ได้)</h2><p class="muted" style="font-size:14px">เอกสารใช้เพื่อตรวจสอบเท่านั้น เปิดดูได้เฉพาะคุณและแอดมิน ไม่แสดงต่อสาธารณะ</p>
 <div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px">${[['id','บัตรประชาชน'],['edu','ใบปริญญา / บัตรนักศึกษา'],['cert','ใบรับรองหรือผลสอบอื่น ๆ']].map(([k,l])=>`<label class="field" for="j-doc-${k}" style="border:1px dashed var(--line-2);border-radius:14px;padding:14px;cursor:pointer">${l}<input id="j-doc-${k}" name="doc-${k}" type="file" accept="image/*,.pdf" style="font-size:13px;font-weight:400;max-width:100%"></label>`).join('')}</div>
 <div style="background:var(--bg-soft);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--ink-2)"><b style="font-weight:600;color:var(--ink)">ค่าธรรมเนียมแพลตฟอร์ม</b><br>สมัครฟรี ไม่มีรายเดือน · ${feeRules()}</div>
 <label class="check" style="font-size:14px;align-items:flex-start"><input type="checkbox" name="agree" id="j-agree" style="margin-top:3px"><span>ยืนยันว่าข้อมูลทั้งหมดเป็นความจริง ยอมรับเงื่อนไขค่าธรรมเนียมแพลตฟอร์มข้างต้น และ <a href="#privacy" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a></span></label></section>
 <div id="j-err" role="alert" class="card pad" style="border-color:var(--danger);color:var(--danger)" hidden></div>
 <div id="j-ok" role="status" class="card pad" style="border-color:var(--ok);background:var(--ok-bg);color:var(--ink)" hidden></div>
-<button class="btn btn-primary btn-lg" type="submit" style="align-self:flex-start">สร้างโปรไฟล์ติวเตอร์</button>
+<button class="btn btn-primary btn-lg" type="submit" style="align-self:flex-start">ส่งใบสมัครติวเตอร์</button>
 </form></div></div>`;
 }
 function readTutorForm(fd){
@@ -923,7 +1011,7 @@ function readTutorForm(fd){
  return {name:(fd.get('name')||'').trim(),nick:(fd.get('nick')||'').trim(),headline:(fd.get('headline')||'').trim(),bio:(fd.get('bio')||'').trim(),uni:(fd.get('uni')||'').trim(),faculty:(fd.get('faculty')||'').trim(),edu_status:fd.get('edu_status')||'',exp:Math.max(0,Math.min(60,Number(fd.get('exp'))||0)),experience:(fd.get('experience')||'').trim(),subjects:fd.getAll('subj'),levels:fd.getAll('lvl'),price,price_onsite:Number(fd.get('price_onsite'))||price,province:fd.get('province')||'',areas:(fd.get('areas')||'').trim(),modes,accept_trial:!!fd.get('accept_trial'),avail:joinAvail.map(r=>r.slice())};
 }
 function validateTutor(r){
- const e=[];if(r.name.length<2)e.push('กรอกชื่อ–นามสกุล');if(!r.uni)e.push('กรอกมหาวิทยาลัย');if(!r.subjects.length)e.push('เลือกวิชาที่สอนอย่างน้อย 1 วิชา');if(!r.levels.length)e.push('เลือกระดับชั้นที่สอนอย่างน้อย 1 ระดับ');if(!(r.price>=50&&r.price<=20000))e.push('ราคาออนไลน์ต้องอยู่ระหว่าง ฿50–฿20,000');if(!(r.price_onsite>=50&&r.price_onsite<=20000))e.push('ราคาตัวต่อตัวต้องอยู่ระหว่าง ฿50–฿20,000');if(!r.modes.length)e.push('เลือกรูปแบบการสอนอย่างน้อย 1 แบบ');if(!r.avail.flat().some(Boolean))e.push('เลือกเวลาว่างอย่างน้อย 1 ช่อง');return e;
+ const e=[];if(r.name.length<2)e.push('กรอกชื่อ–นามสกุล');if(!r.uni)e.push('กรอกมหาวิทยาลัย');if(!r.subjects.length)e.push('เลือกวิชาที่สอนอย่างน้อย 1 วิชา');if(!r.levels.length)e.push('เลือกระดับชั้นที่สอนอย่างน้อย 1 ระดับ');if(!(r.price>=50&&r.price<=20000))e.push('ราคาออนไลน์ต้องอยู่ระหว่าง ฿50–฿20,000');if(!(r.price_onsite>=50&&r.price_onsite<=20000))e.push('ราคาตัวต่อตัวต้องอยู่ระหว่าง ฿50–฿20,000');if(!r.modes.length)e.push('เลือกรูปแบบการสอนอย่างน้อย 1 แบบ');if(!r.avail.flat().some(Boolean))e.push('เลือกเวลาว่างอย่างน้อย 1 ช่อง');if(r.bio.length<50)e.push('เขียนประวัติและแนะนำตัวอย่างน้อย 50 ตัวอักษร (ตอนนี้ '+r.bio.length+' ตัว)');return e;
 }
 function tutorRow(r){return Object.assign({},r,{id:uid(),hue:r.hue!=null?r.hue:Math.floor(Math.random()*360)})}
 function showErrs(errs){const box=$('#j-err');if(!box)return;if(!errs.length){box.hidden=true;return}box.innerHTML='<b>กรุณาแก้ไขข้อมูลต่อไปนี้</b><ul style="margin:6px 0 0;padding-left:20px">'+errs.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'center'})}
@@ -968,14 +1056,22 @@ function viewAdmin(){
  const tabs=[['tutors','ตรวจสอบติวเตอร์'],['fees','ค่าธรรมเนียม'],['codes','โค้ดทดลองเรียน'],['settings','ตั้งค่า PromptPay']];
  let body='';
  if(adminTab==='tutors'){
-  const pendingT=TUT.filter(t=>!t.verified),okT=TUT.filter(t=>t.verified);
+  const stOf=t=>t.review_status||(t.verified?'approved':'pending');
   const docsFor=id=>need('docs:'+id,async()=>{const {data,error}=await sb.storage.from('tutor-docs').list(id,{limit:50,sortBy:{column:'created_at',order:'desc'}});if(error)throw error;if(!data||!data.length)return [];const paths=data.map(f=>id+'/'+f.name);const s=await sb.storage.from('tutor-docs').createSignedUrls(paths,600);if(s.error)throw s.error;return data.map((f,i)=>({name:f.name,url:(s.data[i]||{}).signedUrl}))});
-  const card=t=>{const d=docsFor(t.id);return `<article class="card pad" style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${av(t,44,18)}<div style="flex:1;min-width:0;line-height:1.4"><a href="#t-${t.id}" style="font-weight:600;color:var(--ink)">${esc(t.name)}</a><br><span class="muted" style="font-size:13px">${esc((t.subjects||[]).join(', '))} · ${esc(t.uni)} · สมัคร ${fmtDT(t.created_at)}</span></div>${verifiedBadge(t)}</div>
-<div style="font-size:14px;display:flex;flex-direction:column;gap:4px"><b style="font-weight:600">เอกสาร</b>${!d?'<span class="muted">กำลังโหลด…</span>':d.error?`<span style="color:var(--danger)">${esc(d.error)}</span>`:d.length?d.map(f=>`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join(''):'<span class="muted">ยังไม่มีไฟล์</span>'}</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap">${t.verified?`<button class="btn btn-outline btn-sm" data-act="verify" data-id="${t.id}" data-v="0">ถอนเครื่องหมาย Verified</button>`:`<button class="btn btn-primary btn-sm" data-act="verify" data-id="${t.id}" data-v="1">อนุมัติ Verified</button>`}</div></article>`};
-  body=`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px"><div class="card kpi"><span class="muted">ติวเตอร์ทั้งหมด</span><b class="num">${TUT.length}</b></div><div class="card kpi"><span class="muted">รอตรวจสอบ</span><b class="num">${pendingT.length}</b></div><div class="card kpi"><span class="muted">Verified</span><b class="num">${okT.length}</b></div></div>
-<h2 style="font-size:20px;font-weight:600">รอตรวจสอบ</h2>${pendingT.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">${pendingT.map(card).join('')}</div>`:'<div class="empty">ไม่มีติวเตอร์รอตรวจสอบ</div>'}
-<h2 style="font-size:20px;font-weight:600">ยืนยันแล้ว</h2>${okT.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr))">${okT.map(card).join('')}</div>`:'<div class="empty">ยังไม่มี</div>'}`;
+  const chk=(ok,l)=>`<span style="display:flex;gap:6px;align-items:center;font-size:14px;color:${ok?'var(--ok)':'var(--danger)'}">${ok?I.check(14):I.x(12)} ${l}</span>`;
+  const card=t=>{const d=docsFor(t.id);const g=GAL[t.id]||[];const st=stOf(t);const bio=t.bio||'';const docN=['id','edu','cert'].filter(k=>(t.docs||{})[k]&&t.docs[k]!=='none').length;
+   return `<article class="card pad" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">${av(t,56,22)}<div style="flex:1;min-width:0;line-height:1.4"><a href="#t-${t.id}" style="font-weight:600;color:var(--ink)">${esc(t.name)}</a>${t.nick?` <span class="muted">(${esc(t.nick)})</span>`:''}<br><span class="muted" style="font-size:13px">${esc((t.subjects||[]).join(', '))} · ${esc(t.uni)} · สมัคร ${fmtDT(t.created_at)}</span></div>${verifiedBadge(t)}</div>
+<p style="font-size:14px;color:var(--ink-2);white-space:pre-line">${esc(bio.slice(0,240))}${bio.length>240?'…':''}</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:4px 12px">${chk(!!t.photo_url,'รูปโปรไฟล์')}${chk(bio.length>=50,'ประวัติ '+bio.length+' ตัวอักษร')}${chk(docN>0,'เอกสารยืนยันตัวตน '+docN+'/3')}${chk(g.length>0,'รูปผลงาน '+g.length+' รูป')}</div>
+<div style="font-size:14px;display:flex;flex-direction:column;gap:4px"><b style="font-weight:600">ไฟล์เอกสาร</b>${!d?'<span class="muted">กำลังโหลด…</span>':d.error?`<span style="color:var(--danger)">${esc(d.error)}</span>`:d.length?d.map(f=>`<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>`).join(''):'<span class="muted">ยังไม่มีไฟล์</span>'}</div>
+${g.length?`<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px">${g.slice(0,6).map((x,i)=>`<button data-act="openGal" data-tid="${t.id}" data-i="${i}" style="padding:0;border:0;background:var(--surface-2);border-radius:8px;overflow:hidden;aspect-ratio:1;cursor:zoom-in"><img src="${esc(x.url)}" alt="${esc(x.caption||CATS[x.category]||'')}" style="width:100%;height:100%;object-fit:cover"></button>`).join('')}</div>`:''}
+<label class="field" for="rvn-${t.id}" style="font-weight:500">${st==='approved'?'เหตุผล (กรณีระงับ)':'เหตุผล (กรณีไม่อนุมัติ จะแสดงให้ติวเตอร์เห็น)'}<input class="input" id="rvn-${t.id}" value="${esc(t.review_note||'')}" placeholder="เช่น รูปโปรไฟล์ไม่ชัด / เอกสารไม่ครบ"></label>
+<div style="display:flex;gap:8px;flex-wrap:wrap">${st!=='approved'?`<button class="btn btn-primary btn-sm" data-act="review" data-id="${t.id}" data-v="approved">อนุมัติให้เป็นติวเตอร์</button><button class="btn btn-outline btn-sm" style="color:var(--danger)" data-act="review" data-id="${t.id}" data-v="rejected">ไม่อนุมัติ</button>`:`<button class="btn btn-outline btn-sm" style="color:var(--danger)" data-act="review" data-id="${t.id}" data-v="rejected">ระงับ (ซ่อนจากหน้าเว็บ)</button>`}<a class="btn btn-ghost btn-sm" href="#t-${t.id}">ดูโปรไฟล์เต็ม</a></div></article>`};
+  const grp=k=>TUT.filter(t=>stOf(t)===k&&!(isAdmin&&t.id===uid()&&false));
+  const sec=(k,l,empty)=>{const L=grp(k);return `<h2 style="font-size:20px;font-weight:600">${l} (${L.length})</h2>${L.length?`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr))">${L.map(card).join('')}</div>`:`<div class="empty">${empty}</div>`}`};
+  body=`<div class="grid-auto" style="grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px"><div class="card kpi"><span class="muted">รออนุมัติ</span><b class="num">${grp('pending').length}</b></div><div class="card kpi"><span class="muted">อนุมัติแล้ว</span><b class="num">${grp('approved').length}</b></div><div class="card kpi"><span class="muted">ไม่ผ่าน / ระงับ</span><b class="num">${grp('rejected').length}</b></div></div>
+${sec('pending','รออนุมัติ','ไม่มีใบสมัครรอตรวจสอบ')}${sec('rejected','ไม่ผ่านการอนุมัติ / ระงับ','ไม่มี')}${sec('approved','อนุมัติแล้ว','ยังไม่มีติวเตอร์ที่อนุมัติ')}`;
  }
  if(adminTab==='fees'){
   const c=need('acomm',()=>q(sb.from('commissions').select('*').order('created_at',{ascending:false})));
@@ -1111,6 +1207,14 @@ async submitReview(el){
  if(error){busy(el,false);toast(errMsg(error),true);return}
  delete rateDraft[id];invalidate('sbook','prof:'+b.tutor_id);await loadTutors();rerenderKeep();toast('ขอบคุณสำหรับรีวิว')},
 async rmStudent(el){const {error}=await sb.from('students').delete().eq('id',Number(el.dataset.id));if(error){toast(errMsg(error),true);return}invalidate('students');rerenderKeep()},
+async review(el){const id=el.dataset.id,v=el.dataset.v;const note=(($('#rvn-'+id)||{}).value||'').trim();if(v==='rejected'&&!note){toast('กรุณาระบุเหตุผลที่ไม่อนุมัติ เพื่อให้ติวเตอร์แก้ไขได้',true);const n=$('#rvn-'+id);n&&n.focus();return}busy(el,true,'…');const t=tutor(id)||{};const docs=Object.assign({id:'none',edu:'none',cert:'none'},t.docs||{});if(v==='approved')Object.keys(docs).forEach(k=>{if(docs[k]==='review')docs[k]='ok'});const {error}=await sb.from('tutors').update({review_status:v,review_note:v==='approved'?'':note,docs}).eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}await loadTutors();rerenderKeep();toast({approved:'อนุมัติติวเตอร์แล้ว โปรไฟล์แสดงต่อสาธารณะ',rejected:'บันทึกว่าไม่อนุมัติแล้ว',pending:'ย้ายกลับไปรอตรวจสอบแล้ว'}[v])},
+togglePw(el){const i=document.getElementById(el.dataset.for);if(!i)return;const show=i.type==='password';i.type=show?'text':'password';el.setAttribute('aria-pressed',String(show));el.setAttribute('aria-label',show?'ซ่อนรหัสผ่าน':'แสดงรหัสผ่าน');el.innerHTML=show?EYE_OFF:EYE;i.focus()},
+galCat(el){galCat=el.dataset.v;rerenderKeep()},
+goGallery(){tutorTab='gallery';go('tutor-dashboard')},
+openGal(el){openLightbox(el.dataset.tid,Number(el.dataset.i))},
+galNav(el){openLightbox(el.dataset.tid,Number(el.dataset.i))},
+async galSave(el){const id=Number(el.dataset.id);busy(el,true,'…');const {error}=await sb.from('tutor_gallery').update({caption:($('#gc-'+id).value||'').trim(),category:$('#gk-'+id).value}).eq('id',id);busy(el,false);if(error){toast(errMsg(error),true);return}await loadGallery();toast('บันทึกแล้ว')},
+async galDel(el){const id=Number(el.dataset.id);const g=(GAL[uid()]||[]).find(x=>x.id===id);busy(el,true,'…');const {error}=await sb.from('tutor_gallery').delete().eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}if(g&&g.url.startsWith(PHOTO_PREFIX))await sb.storage.from('tutor-photos').remove([g.url.slice(PHOTO_PREFIX.length)]);await loadGallery();rerenderKeep();toast('ลบรูปแล้ว')},
 async verify(el){const id=el.dataset.id,on=el.dataset.v==='1';busy(el,true,'…');const t=tutor(id);const docs=Object.assign({},t.docs||{});if(on)['id','edu','cert'].forEach(k=>docs[k]='ok');const {error}=await sb.from('tutors').update({verified:on,docs}).eq('id',id);if(error){busy(el,false);toast(errMsg(error),true);return}await loadTutors();rerenderKeep();toast(on?'อนุมัติ Verified แล้ว':'ถอนเครื่องหมายแล้ว')},
 async applyPromo(){
  if(!uid()){openAuth('login',()=>actions.applyPromo(),'parent');return}
@@ -1176,9 +1280,14 @@ document.addEventListener('submit',async e=>{
   }else{res=await sb.auth.signInWithPassword({email,password:pass});busy(btn,false);if(res.error){err.textContent=errMsg(res.error);err.hidden=false;return}closeModal(true);toast('เข้าสู่ระบบแล้ว')}
   session=res.data.session;await loadMe();
   const after=pendingAfterAuth;pendingAfterAuth=null;render();if(after)after();return}
- if(kind==='newpass'){const p=fd.get('pass')||'';if(p.length<6){$('#np-err').textContent='รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';$('#np-err').hidden=false;return}busy(btn,true);const {error}=await sb.auth.updateUser({password:p});busy(btn,false);if(error){$('#np-err').textContent=errMsg(error);$('#np-err').hidden=false;return}closeModal(true);toast('ตั้งรหัสผ่านใหม่แล้ว');return}
+ if(kind==='newpass'){const p=fd.get('pass')||'';if(p!==(fd.get('pass2')||'')){$('#np-err').textContent='รหัสผ่านทั้งสองช่องไม่ตรงกัน';$('#np-err').hidden=false;return}if(p.length<6){$('#np-err').textContent='รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';$('#np-err').hidden=false;return}busy(btn,true);const {error}=await sb.auth.updateUser({password:p});busy(btn,false);if(error){$('#np-err').textContent=errMsg(error);$('#np-err').hidden=false;return}closeModal(true);toast('ตั้งรหัสผ่านใหม่เรียบร้อย คุณเข้าสู่ระบบอยู่แล้ว');await loadMe();render();return}
  if(kind==='message'){const text=(fd.get('text')||'').trim();if(!text)return;busy(btn,true,'กำลังส่ง…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.id,parent_id:uid(),sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){const m=$('#msg-err');m.textContent=errMsg(error);m.hidden=false;return}closeModal();invalidate('smsg');toast('ส่งข้อความแล้ว');if(route()==='student')rerenderKeep();return}
  if(kind==='reply'){const text=(fd.get('body')||'').trim();if(!text)return;busy(btn,true,'…');const {error}=await sb.from('messages').insert({tutor_id:f.dataset.tutor,parent_id:f.dataset.parent,sender_id:uid(),sender_name:myName(),body:text});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('smsg','tmsg');rerenderKeep();return}
+ if(kind==='galUpload'){const files=fd.getAll('gfiles').filter(f=>f&&f.name);if(!files.length){toast('เลือกรูปก่อน',true);return}
+  const have=(GAL[uid()]||[]).length;if(have+files.length>12){toast('อัปโหลดได้รวมสูงสุด 12 รูป (เหลืออีก '+(12-have)+' รูป)',true);return}
+  busy(btn,true,'กำลังอัปโหลด 0/'+files.length);let ok=0;
+  for(const f of files){try{await addGalleryImage(f,fd.get('category')||'other',(fd.get('caption')||'').trim());ok++;btn.textContent='กำลังอัปโหลด '+ok+'/'+files.length}catch(x){toast(f.name+': '+errMsg(x),true)}}
+  busy(btn,false);await loadGallery();rerenderKeep();if(ok)toast('อัปโหลดแล้ว '+ok+' รูป');return}
  if(kind==='promo'){const code=String(fd.get('code')||'').trim().toUpperCase();const err=$('#pc-err');err.hidden=true;
   if(!/^[A-Z0-9_-]{3,30}$/.test(code)){err.textContent='โค้ดต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข 3–30 ตัว';err.hidden=false;return}
   const mx=fd.get('max_uses'),ex=fd.get('expires_at');busy(btn,true);
@@ -1190,14 +1299,15 @@ document.addEventListener('submit',async e=>{
   const {error}=await sb.from('settings').upsert(rows);busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('settings');rerenderKeep();toast('บันทึกการตั้งค่าแล้ว');return}
  if(kind==='student'){const name=(fd.get('name')||'').trim();if(!name){$('#st-name').focus();return}busy(btn,true);const {error}=await sb.from('students').insert({parent_id:uid(),name,level:fd.get('level'),goal:(fd.get('goal')||'').trim()});busy(btn,false);if(error){toast(errMsg(error),true);return}invalidate('students');rerenderKeep();toast('เพิ่มโปรไฟล์ '+name+' แล้ว');return}
  if(kind==='tutorEdit'){const r=readTutorForm(fd);const errs=validateTutor(r);showErrs(errs);if(errs.length)return;busy(btn,true,'กำลังบันทึก…');
-  const ph=fd.get('photo');if(ph&&ph.name){try{r.photo_url=await uploadPhoto(ph)}catch(x){busy(btn,false);showErrs(['อัปโหลดรูปไม่สำเร็จ: '+errMsg(x)]);return}}else if(fd.get('removePhoto'))r.photo_url='';
+  const ph=fd.get('photo');if(ph&&ph.name){try{r.photo_url=await uploadPhoto(ph)}catch(x){busy(btn,false);showErrs(['อัปโหลดรูปไม่สำเร็จ: '+errMsg(x)]);return}}else if(fd.get('removePhoto')||!(myTutor&&myTutor.photo_url)){busy(btn,false);showErrs(['ต้องมีรูปโปรไฟล์ กรุณาเลือกรูป']);return}
   const {data,error}=await sb.from('tutors').update(r).eq('id',uid()).select().single();busy(btn,false);if(error){showErrs([errMsg(error)]);return}myTutor=data;B=null;await loadTutors();toast('บันทึกโปรไฟล์แล้ว');tutorTab='overview';rerenderKeep();return}
  if(kind==='join'){
   const r=readTutorForm(fd);const errs=validateTutor(r);
   if(!uid()){const em=(fd.get('email')||'').trim(),pw=fd.get('pass')||'';if(!em)errs.unshift('กรอกอีเมล');if(pw.length<6)errs.unshift('ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร')}
   if(!fd.get('agree'))errs.push('ยืนยันความถูกต้องของข้อมูลและยอมรับเงื่อนไขค่าธรรมเนียมและนโยบายความเป็นส่วนตัว');
+  {const ph=fd.get('photo');if(!(ph&&ph.name))errs.unshift('เลือกรูปโปรไฟล์');}
   showErrs(errs);if(errs.length)return;
-  busy(btn,true,'กำลังสร้างโปรไฟล์…');
+  busy(btn,true,'กำลังส่งใบสมัคร…');
   try{
    if(!uid()){
     const em=(fd.get('email')||'').trim();
@@ -1209,30 +1319,39 @@ document.addEventListener('submit',async e=>{
     session=res.data.session;
    }
    if(me&&me.role!=='tutor')await sb.from('profiles').update({role:'tutor'}).eq('id',uid());
+   const ph=fd.get('photo');if(ph&&ph.name){try{r.photo_url=await uploadPhoto(ph)}catch(x){toast('อัปโหลดรูปโปรไฟล์ไม่สำเร็จ: '+errMsg(x)+' (เพิ่มภายหลังได้ในแดชบอร์ด)',true)}}
    const {data,error}=await sb.from('tutors').insert(tutorRow(r)).select().single();
    if(error)throw error;myTutor=data;
-   const ph=fd.get('photo');if(ph&&ph.name){try{const url=await uploadPhoto(ph);const u=await sb.from('tutors').update({photo_url:url}).eq('id',uid()).select().single();if(!u.error)myTutor=u.data}catch(x){toast('อัปโหลดรูปโปรไฟล์ไม่สำเร็จ: '+errMsg(x)+' (เพิ่มภายหลังได้ในแดชบอร์ด)',true)}}
+   const gf=fd.getAll('gfiles').filter(f=>f&&f.name).slice(0,12);for(const f of gf){try{await addGalleryImage(f,'other','')}catch(x){toast('อัปโหลดรูปผลงานบางรูปไม่สำเร็จ: '+errMsg(x),true)}}
    const kinds=[];for(const k of ['id','edu','cert']){const file=fd.get('doc-'+k);if(file&&file.name){try{if(await uploadDoc(k,file))kinds.push(k)}catch(x){toast('อัปโหลด '+k+' ไม่สำเร็จ: '+errMsg(x),true)}}}
    await markDocs(kinds);
-   await loadMe();await loadTutors();busy(btn,false);tutorTab='overview';toast('สร้างโปรไฟล์ติวเตอร์เรียบร้อย');go('tutor-dashboard');
+   await loadMe();await loadTutors();busy(btn,false);tutorTab='overview';toast('ส่งใบสมัครแล้ว รอแอดมินอนุมัติ');go('tutor-dashboard');
   }catch(err){busy(btn,false);showErrs([errMsg(err)])}
   return}
 });
 
 /* ---------- boot ---------- */
+function showNewPass(){
+ if($('#np-form'))return;
+ openModal(`${mhead('ตั้งรหัสผ่านใหม่')}<p class="muted">${session&&session.user?'สำหรับบัญชี '+esc(session.user.email):''}</p><form id="np-form" data-form="newpass" style="display:flex;flex-direction:column;gap:12px">${pwField('np','pass','รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)','new-password')}${pwField('np2','pass2','พิมพ์รหัสผ่านใหม่อีกครั้ง','new-password')}<p id="np-err" style="color:var(--danger);font-size:14px" hidden></p><button class="btn btn-primary btn-lg" type="submit">บันทึกรหัสผ่านใหม่</button></form>`);
+}
 async function boot(){
  if(!sb){render();return}
- render();
- const {data}=await sb.auth.getSession();session=data.session;
- await Promise.all([loadMe(),loadTutors()]);
- render();
+ /* ลงทะเบียนก่อน เพื่อไม่ให้พลาดเหตุการณ์ PASSWORD_RECOVERY จากลิงก์ในอีเมล */
  sb.auth.onAuthStateChange((ev,s)=>{
   setTimeout(async()=>{
-   if(ev==='PASSWORD_RECOVERY'){session=s;openModal(`${mhead('ตั้งรหัสผ่านใหม่')}<form data-form="newpass" style="display:flex;flex-direction:column;gap:12px"><label class="field" for="np">รหัสผ่านใหม่<input class="input" id="np" name="pass" type="password" autocomplete="new-password"></label><p id="np-err" style="color:var(--danger);font-size:14px" hidden></p><button class="btn btn-primary" type="submit">บันทึกรหัสผ่าน</button></form>`);return}
+   if(ev==='PASSWORD_RECOVERY'){session=s;showNewPass();return}
    if(ev==='SIGNED_IN'||ev==='SIGNED_OUT'){const changed=(s&&s.user&&s.user.id)!==uid();session=s;if(changed||ev==='SIGNED_OUT'){Object.keys(cache).forEach(k=>delete cache[k]);B=null;await loadMe();render()}}
    else if(ev==='TOKEN_REFRESHED'||ev==='USER_UPDATED'){session=s}
   },0);
  });
+ render();
+ const {data}=await sb.auth.getSession();session=data.session;
+ await Promise.all([loadMe(),loadTutors()]);
+ if(/access_token|error_description|type=/.test(location.hash)){try{history.replaceState(null,'',location.pathname+location.search.replace(/[?&](code|error|error_code|error_description)=[^&]*/g,'')+'#home')}catch(e){}}
+ render();
+ if(IS_RECOVERY){if(session)showNewPass();else{toast('ลิงก์ตั้งรหัสผ่านหมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่',true);openAuth('forgot')}}
+ else if(AUTH_ERR){toast(/expired|otp/i.test(AUTH_ERR)?'ลิงก์หมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่':'เกิดข้อผิดพลาดจากลิงก์: '+AUTH_ERR,true)}
 }
 boot();
 })();
